@@ -1,0 +1,20 @@
+---
+import { LinkIcon } from "@assets/Icons.jsx";
+import AddButton from "@components/AddButton.jsx";
+const { product, tag } = Astro.props;
+---
+
+<div class="card bg-base-100 w-80 shadow-xl">
+  <figure>
+    <img src={product?.img} alt={product?.name} class="rounded-xl" />
+  </figure>
+  <div class="card-body">
+    <h2 class="card-title">
+      {product?.name}
+      <a href={product?.link} target="_blank" rel="noopener noreferrer">
+        <LinkIcon />
+      </a>
+    </h2>
+    <AddButton client:load product={product} tag={tag} />
+  </div>
+</div>
