@@ -96,8 +96,8 @@ const InvoicePDF = ({ items, total, dni, iban }) => (
           <Text style={styles.cell_title}>Precio Total</Text>
         </View>
         {/* Filas de productos */}
-        {items.map((item, index) => (
-          <View key={index} style={styles.row}>
+        {items.forEach((item) => (
+          <View key={item.id} style={styles.row}>
             <Text style={styles.cell}>{item.name}</Text>
             <Text style={styles.cell}>{item.quantity}</Text>
             <Text style={styles.cell}>{item.color}</Text>

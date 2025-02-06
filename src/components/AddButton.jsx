@@ -10,11 +10,9 @@
     const notify = () => toast.success("Producto añadido al carrito")
   
     function handleAddElementToCart() {
-      console.log(quantity, sizeSelected, colorSelected)
       addToCart({tag: tag, product: product, quantity: quantity, size: sizeSelected, color: colorSelected})
   
       const quantityInput = document.getElementById("cantidad-producto" + product.id)
-      console.log(quantityInput)
       quantityInput.value = ""
       setQuantity(0)
       setColorSelected("")

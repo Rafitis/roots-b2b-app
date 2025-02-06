@@ -21,8 +21,7 @@
     "astro": "^5.2.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hot-toast": "^2.5.1",
-    "react-pdf": "^9.2.1"
+    "react-hot-toast": "^2.5.1"
   },
   "devDependencies": {
     "daisyui": "^4.12.23",

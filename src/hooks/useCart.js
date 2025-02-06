@@ -79,10 +79,12 @@ export function removeFromCart(element) {
   const newCart = itemsStore.get('cart').filter((item) => item.id !== key);
   itemsStore.set(newCart)
   updateCartDiscount(element.tag, element.product_id)
+  return itemsStore.get('cart')
 }
 
 export function removeAllFromCart() {
-  itemsStore.set([])
+  return itemsStore.set([])
+
 }
 
 export function getCart() {
