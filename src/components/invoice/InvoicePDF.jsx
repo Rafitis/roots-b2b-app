@@ -76,7 +76,7 @@ const InvoicePDF = ({ items, total, dni, iban }) => (
           <Text><Text style={styles.bold}>DIRECCIÓN</Text>: C/ Juan de la Cruz, 1</Text>
         </View>
         <View>
-          <Image src="src/assets/B2B_RootsBarefoot.png" style={{ width: 200, height: 150 }} />
+          <Image src="/B2B_RootsBarefoot.png" style={{ width: 200, height: 150 }} />
         </View>
       </View>
       <View style={{flexDirection: "row", justifyContent: "space-between"}}>
