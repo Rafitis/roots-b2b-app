@@ -1,0 +1,13 @@
+---
+import { getAllCustomers } from "@services/clientServices";
+
+try {
+  const customers = await getAllCustomers();
+  return new Response(JSON.stringify(customers), {
+    headers: { "Content-Type": "application/json" },
+  });
+} catch (error) {
+  console.error("Error en la consulta de clientes:", error);
+  return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+}
+---

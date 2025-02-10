@@ -3,7 +3,7 @@ import { useState } from "react";
 import { removeFromCart, removeAllFromCart, getCart, itemsStore } from "@hooks/useCart";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 
-export default function CartTable({ DNI, IBAN }) {
+export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
   // Inicializa el estado con el carrito, asegurando que sea un array.
   const [listCart, setListCart] = useState(getCart());
 
@@ -100,7 +100,7 @@ export default function CartTable({ DNI, IBAN }) {
         </table>
       </div>
       <div className="flex justify-between pt-8">
-        <InvoiceDownload items={listCart} total={total} dni={DNI} iban={IBAN} />
+        <InvoiceDownload items={listCart} total={total} dni={DNI} iban={IBAN} selectedCustomer={selectedCustomer}/>
         <button className="btn btn-error btn-md" onClick={handleDeleteAllElementsFromCart}>
           Eliminar todo
         </button>

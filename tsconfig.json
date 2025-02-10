@@ -20,7 +20,8 @@
       "@utils/*": ["src/utils/*"],
       "@data/*": ["src/data/*"],
       "@styles/*": ["src/styles/*"],
-      "@hooks/*": ["src/hooks/*"]
+      "@hooks/*": ["src/hooks/*"],
+      "@services/*": ["src/services/*"],
     }
   }
 }

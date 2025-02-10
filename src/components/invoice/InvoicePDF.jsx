@@ -61,8 +61,17 @@ function formatIBAN(iban) {
   return grupos ? grupos.join(" ") : "";
 }
 
+function formatDate(date) {
+  if (!date) {
+    return "";
+  }
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString("es-ES");
+}
+
 // Componente InvoicePDF
-const InvoicePDF = ({ items = [], total, dni, iban }) => {
+const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
+  {console.log(selectedCustomer)}
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -71,13 +80,13 @@ const InvoicePDF = ({ items = [], total, dni, iban }) => {
           <View>
             <Text style={styles.bold}>DETALLES DE FACTURACIÓN CLIENTE:</Text>
             <Text>
-              <Text style={styles.bold}>NOMBRE</Text>: Nombre de empresa
+              <Text style={styles.bold}>NOMBRE</Text>: {selectedCustomer?.fiscal_name}
             </Text>
             <Text>
-              <Text style={styles.bold}>NIF o CIF</Text>: B1234567
+              <Text style={styles.bold}>NIF o CIF</Text>: {selectedCustomer?.nif_cif}
             </Text>
             <Text>
-              <Text style={styles.bold}>DIRECCIÓN</Text>: C/ Juan de la Cruz, 1
+              <Text style={styles.bold}>DIRECCIÓN</Text>: {selectedCustomer?.address}
             </Text>
           </View>
           <View>
@@ -86,8 +95,8 @@ const InvoicePDF = ({ items = [], total, dni, iban }) => {
         </View>
 
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Text style={styles.bold}>Fecha: Fecha pedido</Text>
-          <Text style={styles.bold}>Factura: Nº de factura</Text>
+          <Text style={styles.bold}>Fecha: {formatDate(new Date())}</Text>
+          <Text style={styles.bold}>Factura: </Text>
         </View>
 
         {/* Tabla de productos */}
@@ -132,7 +141,6 @@ const InvoicePDF = ({ items = [], total, dni, iban }) => {
           <Text>IVA 21% € {(total - total / 1.21).toFixed(2)}</Text>
           <Text>RECARGO DE EQUIVALENCIA 5,2% € -</Text>
           <Text style={styles.bold}>TOTAL FACTURA € {total.toFixed(2)}</Text>
-          <Text style={styles.bold}>PAGO 30% € {(total * 0.3).toFixed(2)}</Text>
         </View>
 
         {/* Datos de facturación */}

@@ -1,7 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { useState } from "react";
 import CartTable from "@components/CartTable";
-
+import CustomerDropdown from "@components/CustomerDropdown";
+import CartAndCustomer from "@components/CartAndCustomer";
 import { getUser } from "@lib/auth";
 
 const user = await getUser(Astro.request);
@@ -16,7 +18,7 @@ const IBAN = import.meta.env.INVOICE_IBAN;
 <Layout title="Welcome to Roots Barefoot Budget Generator">
   <main class="container mx-auto w-full">
     <div class="m-10 bg-base-100">
-      <CartTable client:only="react" DNI={DNI} IBAN={IBAN} />
+      <CartAndCustomer client:only="react" DNI={DNI} IBAN={IBAN} />
     </div>
   </main>
 </Layout>

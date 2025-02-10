@@ -3,11 +3,16 @@ import InvoicePDF from "@components/invoice/InvoicePDF";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ErrorBoundary from "@components/errors/ErrorBoundary";
 
-const InvoiceDownload = ({ items = [], total, dni, iban }) => (
+const InvoiceDownload = ({ items = [], total, dni, iban, selectedCustomer  }) => (
   <div>
     <ErrorBoundary>
       <PDFDownloadLink
-        document={<InvoicePDF items={items} total={total} dni={dni} iban={iban} />}
+        document={<InvoicePDF 
+                    items={items} 
+                    total={total} 
+                    dni={dni} 
+                    iban={iban} 
+                    selectedCustomer={selectedCustomer} />}
         key={Math.random()}
         fileName="factura.pdf"
         style={{
