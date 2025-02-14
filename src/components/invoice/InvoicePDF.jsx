@@ -71,7 +71,6 @@ function formatDate(date) {
 
 // Componente InvoicePDF
 const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
-  {console.log(selectedCustomer)}
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -139,7 +138,7 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
         <View style={styles.total}>
           <Text>TOTAL SIN IVA € {(total / 1.21).toFixed(2)}</Text>
           <Text>IVA 21% € {(total - total / 1.21).toFixed(2)}</Text>
-          <Text>RECARGO DE EQUIVALENCIA 5,2% € -</Text>
+          <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? (total * 0.052).toFixed(2) : '-'}</Text>
           <Text style={styles.bold}>TOTAL FACTURA € {total.toFixed(2)}</Text>
         </View>
 
