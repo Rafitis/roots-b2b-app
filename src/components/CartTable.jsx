@@ -1,6 +1,6 @@
 // CartTable.jsx
 import { useState } from "react";
-import { removeFromCart, removeAllFromCart, getCart, itemsStore } from "@hooks/useCart";
+import { removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 
 export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
@@ -19,7 +19,7 @@ export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
 
   // Calcular el total usando reduce; si listCart es un array, esto funcionará correctamente.
   const total = listCart.reduce(
-    (acc, item) => acc + item.quantity * Number(item.price),
+    (acc, item) => acc + item.quantity * Number(item.price) * (1 - (item.discount / 100)),
     0
   );
 
@@ -99,6 +99,7 @@ export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
           </tfoot>
         </table>
       </div>
+      <div className="flex justify-end pt-8 pb-4 font-bold">Total: € {total.toFixed(2)}</div>
       <div className="flex justify-between pt-8">
         <InvoiceDownload items={listCart} total={total} dni={DNI} iban={IBAN} selectedCustomer={selectedCustomer}/>
         <button className="btn btn-error btn-md" onClick={handleDeleteAllElementsFromCart}>
