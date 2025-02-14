@@ -1,48 +1,33 @@
 import React, { useEffect, useState } from "react";
 
-const CustomerDropdown = ({ onSelect }) => {
-  const [customers, setCustomers] = useState([]);
-  const [selected, setSelected] = useState("");
+const CustomerDropdown = ({ onStateChange }) => {
+  const [name, setName] = useState("");
+  const [nif, setNif] = useState("");
+  const [address, setAddress] = useState("");
+  const [isRecharge, setIsRecharge] = useState(false);
 
+  // Cada vez que alguno de estos estados cambie, notificamos al padre.
   useEffect(() => {
-    // Realiza la consulta a la API de clientes
-    fetch("/api/customers/customers")
-      .then((res) => res.json())
-      .then((data) => {
-        // Aseguramos que data es un array
-        const list = Array.isArray(data) ? data : [];
-        setCustomers(list);
-        // Opcional: selecciona el primer cliente por defecto si existe alguno
-        if (list.length > 0) {
-          setSelected(list[0].id);
-          onSelect && onSelect(list[0]);
-        }
-      })
-      .catch((error) =>
-        console.error("Error fetching customers in dropdown:", error)
-      );
-  }, []);
+    onStateChange({
+      fiscal_name: name,
+      nif_cif: nif,
+      address: address,
+      isRecharge: isRecharge,
+    });
+  }, [name, nif, address, isRecharge, onStateChange]);
 
-  const handleChange = (e) => {
-    const selected = e.target.value;
-    setSelected(selected)
-    const customer = customers.find((customer) => customer.id.toString() === selected.toString());
-    onSelect && onSelect(customer);
-  };
-  
   return (
-    <select 
-      name="customer" 
-      value={selected}
-      onChange={handleChange}
-      className="select select-bordered w-full max-w-xs">
-      <option disabled selected>Datos tienda</option>
-      {customers.map((client) => (
-        <option key={client.id} value={client.id}>
-          {client.name}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-row gap-2">
+      <input type="text" placeholder="Nombre Fiscal" className="input input-bordered w-full max-w-xs" onChange={(e) => setName(e.target.value)} />
+      <input type="text" placeholder="NIF o CIF" className="input input-bordered w-full max-w-xs" onChange={(e) => setNif(e.target.value)} />
+      <input type="text" placeholder="Dirección" className="input input-bordered w-full max-w-xs" onChange={(e) => setAddress(e.target.value)} />
+      <div className="form-control">
+        <label className="label cursor-pointer gap-2">
+          <span className="label-text">Recargo Equivalencia</span>
+          <input type="checkbox" className="checkbox" onClick={() => setIsRecharge(!isRecharge)} />
+        </label>
+      </div>
+    </div>
   );
 };
 
