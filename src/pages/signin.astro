@@ -12,7 +12,13 @@ if (accessToken && refreshToken) {
 ---
 
 <AuthLayout title="Sign in">
-  <form action="/api/auth/signin" method="post" class="flex flex-col gap-4 card bg-base-100 w-96 shadow-xl p-8">
+  <div class="flex flex-col">
+    <form action="/api/auth/signin" method="post" class="flex flex-col gap-4 card bg-base-100 w-96 shadow-xl p-8 ">
+      <img
+      src="/B2B_RootsBarefoot.png"
+      alt="Roots Barefoot Logo"
+      class="w-96 h-auto object-cover rounded-2xl"
+        />
     <label for="email" class="input input-bordered flex items-center gap-2">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -41,4 +47,5 @@ if (accessToken && refreshToken) {
       </label>
     <button type="submit" class="btn btn-active btn-primary">Login</button>
   </form>
+</div>
 </AuthLayout>

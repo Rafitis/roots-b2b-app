@@ -16,7 +16,7 @@ const IBAN = import.meta.env.INVOICE_IBAN;
 ---
 
 <Layout title="Welcome to Roots Barefoot Budget Generator">
-  <main class="container mx-auto w-full">
+  <main class="container mx-auto w-full h-screen">
     <div class="m-10 bg-base-100">
       <CartAndCustomer client:only="react" DNI={DNI} IBAN={IBAN} />
     </div>

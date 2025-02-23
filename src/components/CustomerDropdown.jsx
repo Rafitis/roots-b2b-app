@@ -17,7 +17,7 @@ const CustomerDropdown = ({ onStateChange }) => {
   }, [name, nif, address, isRecharge, onStateChange]);
 
   return (
-    <div className="flex flex-row gap-2">
+    <div className="flex flex-col md:flex-row gap-4 md:gap-2">
       <input type="text" placeholder="Nombre Fiscal" className="input input-bordered w-full max-w-xs" onChange={(e) => setName(e.target.value)} />
       <input type="text" placeholder="NIF o CIF" className="input input-bordered w-full max-w-xs" onChange={(e) => setNif(e.target.value)} />
       <input type="text" placeholder="Dirección" className="input input-bordered w-full max-w-xs" onChange={(e) => setAddress(e.target.value)} />

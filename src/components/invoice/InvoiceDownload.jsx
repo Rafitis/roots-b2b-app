@@ -4,7 +4,6 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import ErrorBoundary from "@components/errors/ErrorBoundary";
 
 const InvoiceDownload = ({ items = [], total, dni, iban, selectedCustomer  }) => (
-  <div>
     <ErrorBoundary>
       <PDFDownloadLink
         document={<InvoicePDF 
@@ -32,7 +31,6 @@ const InvoiceDownload = ({ items = [], total, dni, iban, selectedCustomer  }) =>
         }}
       </PDFDownloadLink>
     </ErrorBoundary>
-  </div>
 );
 
 export default InvoiceDownload;

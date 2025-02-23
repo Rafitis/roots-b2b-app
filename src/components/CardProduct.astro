@@ -4,12 +4,12 @@ import AddButton from "@components/AddButton.jsx";
 const { product, tag } = Astro.props;
 ---
 
-<div class="card bg-base-100 w-80 shadow-xl">
+<div class="card bg-base-100 w-80 md:w-80 shadow-xl">
   <figure>
     <img src={product?.img} alt={product?.name} class="rounded-xl" />
   </figure>
   <div class="card-body">
-    <h2 class="card-title">
+    <h2 class="card-title text-2xs md:text-xl">
       {product?.name}
       <a href={product?.link} target="_blank" rel="noopener noreferrer">
         <LinkIcon />

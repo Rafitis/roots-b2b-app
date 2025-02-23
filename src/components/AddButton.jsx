@@ -25,7 +25,7 @@
     const [sizeSelected, setSizeSelected] = useState("")
   
       return (
-        <>
+      <>
         <div className="flex flex-row gap-2 pb-4">
           {product?.Colores && (
         <select defaultValue="Color" key="color" className="select select-bordered w-full max-w-xs" onChange={(e) => setColorSelected(e.target.value)}>
@@ -43,17 +43,17 @@
             ))}
           </select>
         )}
-    </div>
-    <div className="pb-2">
-        <input id={"cantidad-producto" + product?.id} type="text" placeholder="Cantidad" className="input input-bordered w-full max-w-xs" onChange={(e) => setQuantity(Number(e.target.value))} />
-    </div>
-    <div className="card-actions justify-center pb-4">
-      <button className="btn btn-primary btn-md" onClick={handleAddElementToCart}>
-        <Toaster position="top-right" reverseOrder={false} />
-        <CartIcon />
-        Añadir producto
-      </button>
       </div>
-      </>
+      <div className="pb-4 md:pb-2">
+          <input id={"cantidad-producto" + product?.id} type="text" placeholder="Cantidad" className="input input-bordered w-full max-w-xs" onChange={(e) => setQuantity(Number(e.target.value))} />
+      </div>
+      <div className="card-actions justify-end md:justify-center md:pb-4">
+        <button className="btn btn-primary btn-md" onClick={handleAddElementToCart}>
+          <Toaster position="top-right" reverseOrder={false} />
+          <CartIcon />
+          Añadir producto
+        </button>
+      </div>
+    </>
     )
   }

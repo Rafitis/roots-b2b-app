@@ -20,18 +20,18 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body>
+	<body class="md:place-items-center">
 		<img
-			src="/B2B_RootsBarefoot.png"
-			alt="Roots Barefoot Logo"
-			class="w-96 h-auto object-cover mt-20 rounded-2xl"
+		src="/B2B_RootsBarefoot.png"
+		alt="Roots Barefoot Logo"
+		class="w-96 h-auto object-cover mt-20 rounded-2xl"
 		/>
-			<NavBar />
+		<NavBar />
+		<div class="h-full">
 			<!-- <SessionExpiration client:load /> -->
-			<div>
-				<slot />
-			</div>
-			<Footer />
+			<slot />
+		</div>
+		<Footer />
 	</body>
 </html>
 <style is:global>
@@ -65,8 +65,6 @@ const { title } = Astro.props;
 	body {
 		display: flex;
 		flex-direction: column;
-		juist-content: center;
-		align-items: center;
 		min-height: 100vh;
 		width: 100%;
 		height: 100%;
