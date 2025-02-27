@@ -25,7 +25,7 @@ export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="overflow-auto mb-10">
         <table className="table">
           <thead>
             <tr>
@@ -101,7 +101,7 @@ export default function CartTable({ DNI, IBAN, selectedCustomer  }) {
       </div>
       <div className="flex justify-end pt-8 pb-4 font-bold">Total: € {total.toFixed(2)}</div>
       <div className="flex justify-between pt-8">
-        <InvoiceDownload items={listCart} total={total} dni={DNI} iban={IBAN} selectedCustomer={selectedCustomer}/>
+        {/* <InvoiceDownload items={listCart} total={total} dni={DNI} iban={IBAN} selectedCustomer={selectedCustomer}/> */}
         <button className="btn btn-error btn-md" onClick={handleDeleteAllElementsFromCart}>
           Eliminar todo
         </button>

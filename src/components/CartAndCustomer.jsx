@@ -17,10 +17,10 @@ const CartAndCustomer = ({ DNI, IBAN }) => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <CustomerDropdown onStateChange={handleSelectCustomer} />
       <CartTable DNI={DNI} IBAN={IBAN} selectedCustomer={shopData} />
-    </div>
+    </>
   );
 };
 

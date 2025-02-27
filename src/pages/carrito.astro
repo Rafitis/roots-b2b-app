@@ -5,20 +5,23 @@ import CartTable from "@components/CartTable";
 import CustomerDropdown from "@components/CustomerDropdown";
 import CartAndCustomer from "@components/CartAndCustomer";
 import { getUser } from "@lib/auth";
-
+import ItemsTable from "@components/ItemsTable";
+import ClientForm from "@components/ClientForm";
 const user = await getUser(Astro.request);
 if (!user) {
   return Astro.redirect("/signin");
 }
-
+  
 const DNI = import.meta.env.INVOICE_DNI;
 const IBAN = import.meta.env.INVOICE_IBAN;
+
+
 ---
 
 <Layout title="Welcome to Roots Barefoot Budget Generator">
-  <main class="container mx-auto w-full h-screen">
-    <div class="m-10 bg-base-100">
-      <CartAndCustomer client:only="react" DNI={DNI} IBAN={IBAN} />
-    </div>
+  <main class="container mx-auto w-full h-screen mt-10 overflow-auto mb-12">
+    <!-- <CartAndCustomer client:only="react" DNI={DNI} IBAN={IBAN} /> -->
+    <ClientForm client:only="react" />
+    <!-- <ItemsTable client:only="react" /> -->
   </main>
 </Layout>
