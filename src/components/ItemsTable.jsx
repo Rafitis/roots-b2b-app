@@ -1,12 +1,8 @@
-import { useState } from "react";
-import { removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart";
 
-
-export default function ItemsTable(){
-  const [listCart, setListCart] = useState(getCart());
-  
+export default function ItemsTable({items, onDelete}){
   return (
-    <table className="table overflow-auto">
+    <div className="overflow-auto max-h-[800px] mb-10">
+    <table className="table w-full">
       <thead>
         <tr>
           <th>
@@ -25,7 +21,7 @@ export default function ItemsTable(){
       </thead>
       <tbody>
         {
-          listCart.map((item) => {
+          items.map((item) => {
             const single_price = Number(item.price);
             const discountFactor = 1 - Number(item.discount) / 100;
             const total_price = (
@@ -61,7 +57,7 @@ export default function ItemsTable(){
                 <th>
                   <button
                     className="btn btn-xs btn-outline btn-error"
-                    // onclick={() => handleDeleteElementFromCart(item)}
+                    onClick={() => onDelete(item)}
                   >
                     Eliminar
                   </button>
@@ -84,6 +80,7 @@ export default function ItemsTable(){
         </tr>
       </tfoot>
     </table>
+    </div>
   )
 }
 

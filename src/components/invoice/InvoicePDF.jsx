@@ -33,10 +33,30 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   cell: {
+    flex: 2,
+    textAlign: "center",
+  },
+  cell_secondary: {
+    flex: 0.8,
+    textAlign: "center",
+  },
+  cell_terciary: {
     flex: 1,
     textAlign: "center",
   },
   cell_title: {
+    flex: 2,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontWeight: 900,
+  },
+  cell_title_secondary: {
+    flex: 0.8,
+    textAlign: "center",
+    fontFamily: "Helvetica-Bold",
+    fontWeight: 900,
+  },
+  cell_title_terciary: {
     flex: 1,
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
@@ -109,13 +129,13 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
           {/* Encabezado de la tabla */}
           <View style={[styles.row, { backgroundColor: "#f0f0f0" }]}>
             <Text style={styles.cell_title}>Concepto</Text>
-            <Text style={styles.cell_title}>Cantidad</Text>
-            <Text style={styles.cell_title}>Color</Text>
-            <Text style={styles.cell_title}>Talla</Text>
-            <Text style={styles.cell_title}>Precio PvP ROOTS</Text>
-            <Text style={styles.cell_title}>DTO [%]</Text>
-            <Text style={styles.cell_title}>Precio Final Unidad</Text>
-            <Text style={styles.cell_title}>Precio Total</Text>
+            <Text style={styles.cell_title_secondary}>Cantidad</Text>
+            <Text style={styles.cell_title_secondary}>Color</Text>
+            <Text style={styles.cell_title_secondary}>Talla</Text>
+            <Text style={styles.cell_title_terciary}>Precio PvP ROOTS</Text>
+            <Text style={styles.cell_title_terciary}>DTO [%]</Text>
+            <Text style={styles.cell_title_terciary}>Precio Final Unidad</Text>
+            <Text style={styles.cell_title_terciary}>Precio Total</Text>
           </View>
 
           {Array.isArray(items) &&
@@ -128,13 +148,13 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
               return (
                 <View key={item.id} style={styles.row}>
                   <Text style={styles.cell}>{item.name}</Text>
-                  <Text style={styles.cell}>{quantity}</Text>
-                  <Text style={styles.cell}>{item.color}</Text>
-                  <Text style={styles.cell}>{item.size}</Text>
-                  <Text style={styles.cell}>€{price}</Text>
-                  <Text style={styles.cell}>{discount}</Text>
-                  <Text style={styles.cell}>€{finalUnitPrice}</Text>
-                  <Text style={styles.cell}>€{totalPrice}</Text>
+                  <Text style={styles.cell_secondary}>{quantity}</Text>
+                  <Text style={styles.cell_secondary}>{item.color}</Text>
+                  <Text style={styles.cell_secondary}>{item.size}</Text>
+                  <Text style={styles.cell_terciary}>€{price}</Text>
+                  <Text style={styles.cell_terciary}>{discount}</Text>
+                  <Text style={styles.cell_terciary}>€{finalUnitPrice}</Text>
+                  <Text style={styles.cell_terciary}>€{totalPrice}</Text>
                 </View>
               );
             })}

@@ -1,12 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { useState } from "react";
-import CartTable from "@components/CartTable";
-import CustomerDropdown from "@components/CustomerDropdown";
-import CartAndCustomer from "@components/CartAndCustomer";
 import { getUser } from "@lib/auth";
-import ItemsTable from "@components/ItemsTable";
-import ClientForm from "@components/ClientForm";
+import CartPage from "@components/CartPage.jsx";
+
 const user = await getUser(Astro.request);
 if (!user) {
   return Astro.redirect("/signin");
@@ -15,13 +11,12 @@ if (!user) {
 const DNI = import.meta.env.INVOICE_DNI;
 const IBAN = import.meta.env.INVOICE_IBAN;
 
-
 ---
 
 <Layout title="Welcome to Roots Barefoot Budget Generator">
-  <main class="container mx-auto w-full h-screen mt-10 overflow-auto mb-12">
+  <main class="container mx-auto w-full h-screen mt-10 mb-12">
     <!-- <CartAndCustomer client:only="react" DNI={DNI} IBAN={IBAN} /> -->
-    <ClientForm client:only="react" />
+    <CartPage client:only="react" DNI={DNI} IBAN={IBAN} />
     <!-- <ItemsTable client:only="react" /> -->
   </main>
 </Layout>

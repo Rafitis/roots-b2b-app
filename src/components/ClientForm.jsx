@@ -1,27 +1,62 @@
+// src/components/CustomerForm.jsx
 import React, { useEffect, useState } from "react";
 
+const CustomerForm = ({ onStateChange }) => {
+  const [formData, setFormData] = useState({
+    fiscal_name: "",
+    nif_cif: "",
+    address: "",
+    isRecharge: false,
+  });
 
-export default function ClientForm ({  }) {
-  const [name, setName] = useState("");
-  const [nif, setNif] = useState("");
-  const [address, setAddress] = useState("");
-  const [isRecharge, setIsRecharge] = useState(false);
-
-  const Counter = ({ initialCount }) => {
-    const [count, setCount] = useState(initialCount);
-  }
+  // Cada vez que el formulario cambie, se notifica al padre.
+  useEffect(() => {
+    onStateChange(formData);
+  }, [formData, onStateChange]);
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 md:gap-2">
-      <input type="text" placeholder="Nombre Fiscal" className="input input-bordered w-full max-w-xs" onChange={(e) => setName(e.target.value)} />
-      <input type="text" placeholder="NIF o CIF" className="input input-bordered w-full max-w-xs" onChange={(e) => setNif(e.target.value)} />
-      <input type="text" placeholder="Dirección" className="input input-bordered w-full max-w-xs" onChange={(e) => setAddress(e.target.value)} />
-      <div className="form-control">
-        <label className="label cursor-pointer gap-2">
-          <span className="label-text">Recargo Equivalencia</span>
-          <input type="checkbox" className="checkbox" onClick={() => setIsRecharge(!isRecharge)} />
-        </label>
-      </div>
+    <div className="flex flex-col gap-4 p-4 border rounded">
+      <input
+        type="text"
+        placeholder="Nombre Fiscal"
+        className="input input-bordered"
+        value={formData.fiscal_name}
+        onChange={(e) =>
+          setFormData({ ...formData, fiscal_name: e.target.value })
+        }
+      />
+      <input
+        type="text"
+        placeholder="NIF o CIF"
+        className="input input-bordered"
+        value={formData.nif_cif}
+        onChange={(e) =>
+          setFormData({ ...formData, nif_cif: e.target.value })
+        }
+      />
+      <input
+        type="text"
+        placeholder="Dirección"
+        className="input input-bordered"
+        value={formData.address}
+        onChange={(e) =>
+          setFormData({ ...formData, address: e.target.value })
+        }
+      />
+      <label className="flex items-center gap-2">
+        <span>Recargo Equivalencia</span>
+        <input
+          type="checkbox"
+          className="checkbox"
+          checked={formData.isRecharge}
+          onChange={(e) =>
+            setFormData({ ...formData, isRecharge: e.target.checked })
+          }
+        />
+      </label>
     </div>
   );
-}
+};
+
+export default CustomerForm;
+
