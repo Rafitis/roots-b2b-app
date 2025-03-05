@@ -32,23 +32,23 @@ const CartPage = ({ DNI, IBAN}) => {
   );
 
   return (
-    <div className="p-4">
+    <div>
       <h2 className="text-xl font-bold mb-4">Información del Cliente</h2>
       <ClientForm onStateChange={setCustomerInfo} />
       <h2 className="text-xl font-bold my-4">Carrito de Compras</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} />
-      <div className="flex justify-between mt-4">
-      <InvoiceDownload
-        items={cartItems}
-        total={total}
-        customerInfo={customerInfo}
-        dni={DNI}
-        iban={IBAN}
-        />
+      <div className="flex justify-between">
+        <InvoiceDownload
+          items={cartItems}
+          total={total}
+          customerInfo={customerInfo}
+          dni={DNI}
+          iban={IBAN}
+          />
         <button className="btn btn-error btn-md" onClick={handleDeleteAll}>
           Eliminar todo
         </button>
-        </div>
+      </div>
     </div>
   );
 };

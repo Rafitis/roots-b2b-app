@@ -8,13 +8,15 @@ const { product, tag } = Astro.props;
   <figure>
     <img src={product?.img} alt={product?.name} class="rounded-xl" />
   </figure>
-  <div class="card-body">
-    <h2 class="card-title text-2xs md:text-xl">
+  <div class="card-body h-[300px] justify-between">
+    <div class="flex place-content-center text-center gap-2">
+    <a href={product?.link} target="_blank" rel="noopener noreferrer">
+      <LinkIcon />
+    </a>
+    <h2 class="card-title text-xs md:text-xl uppercase">
       {product?.name}
-      <a href={product?.link} target="_blank" rel="noopener noreferrer">
-        <LinkIcon />
-      </a>
     </h2>
+  </div>
     <AddButton client:load product={product} tag={tag} />
   </div>
 </div>

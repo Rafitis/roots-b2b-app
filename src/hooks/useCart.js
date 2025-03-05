@@ -17,7 +17,7 @@ function generateKey(product_id, size, color) {
   return `${product_id}_${size}_${color}`;
 }
 
-function calculateDiscount(tag, quantity) {
+export function calculateDiscount(tag, quantity) {
   if (tag === "ROOTS CARE" || tag === "CALCETINES") {
     if (quantity >= 52) return 30; // 30% de descuento
     if (quantity >= 16) return 25; // 25% de descuento
