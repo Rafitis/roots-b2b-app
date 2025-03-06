@@ -22,10 +22,12 @@
       setSizeSelected("")
       notify()
     }
-  
+    
+    const initialSize = product?.Talla ? product?.Talla[0] : ""
+    const initialColor = product?.Color ? product?.Color[0] : ""
     const [quantity, setQuantity] = useState(1)
-    const [colorSelected, setColorSelected] = useState("")
-    const [sizeSelected, setSizeSelected] = useState("")
+    const [colorSelected, setColorSelected] = useState(initialColor)
+    const [sizeSelected, setSizeSelected] = useState(initialSize)
     const [price, setPrice] = useState(product?.Precio)
 
     const handleUpdatePrice = (e) => {
@@ -55,7 +57,7 @@
         {product?.Talla && (
           <div className="label w-full max-w-xs gap-[4px]">
             <span className="label-text">Talla:</span>
-            <select key="size" className="select select-sm select-bordered rounded-md w-full max-w-xs" onChange={(e) => setSizeSelected(e.target.value)}>
+            <select defaultValue={sizeSelected} key="size" className="select select-sm select-bordered rounded-md w-full max-w-xs" onChange={(e) => setSizeSelected(e.target.value)}>
               {/* <option disabled>Talla</option> */}
               {product?.Talla.map((size) => (
                 <option key={size} value={size}>{size}</option>
