@@ -5,12 +5,6 @@ import Layout from "@layouts/Layout.astro";
 import Products from "@components/Products.astro";
 import { getShopifyProducts } from "@lib/shopify.js";
 
-import {getUser} from "@lib/auth.js"
-
-const user = await getUser(Astro.request)
-if (!user) {
-	return Astro.redirect('/signin')
-}
 
 const groupedByExactTag = await getShopifyProducts();
 ---
