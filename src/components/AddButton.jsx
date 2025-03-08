@@ -9,8 +9,15 @@
   const notify = () => toast.success("Producto añadido al carrito")
   export default function AddButton({product, tag}) {
 
+    const initialSize = product?.Talla ? product?.Talla[0] : ""
+    const initialColor = product?.Colores ? product?.Colores[0] : ""
+    const [quantity, setQuantity] = useState(1)
+    const [colorSelected, setColorSelected] = useState(initialColor)
+    const [sizeSelected, setSizeSelected] = useState(initialSize)
+    const [price, setPrice] = useState(product?.Precio)
+    
     function handleAddElementToCart() {
-      console.log(quantity, sizeSelected, colorSelected)
+      
       if (quantity === 0) return
       
       addToCart({tag: tag, product: product, quantity: quantity, size: sizeSelected, color: colorSelected})
@@ -18,17 +25,10 @@
       const quantityInput = document.getElementById("cantidad-producto" + product.id)
       quantityInput.value = ""
       setQuantity(1)
-      setColorSelected("")
-      setSizeSelected("")
+      setColorSelected(initialColor)
+      setSizeSelected(initialSize)
       notify()
     }
-    
-    const initialSize = product?.Talla ? product?.Talla[0] : ""
-    const initialColor = product?.Color ? product?.Color[0] : ""
-    const [quantity, setQuantity] = useState(1)
-    const [colorSelected, setColorSelected] = useState(initialColor)
-    const [sizeSelected, setSizeSelected] = useState(initialSize)
-    const [price, setPrice] = useState(product?.Precio)
 
     const handleUpdatePrice = (e) => {
       if (e.target.value === "") return setPrice(product?.Precio)
