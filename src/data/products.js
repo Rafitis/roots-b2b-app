@@ -39,5 +39,13 @@ export const SHOES_DATA = {
   10407260225867: {
     "name": "Roots Platillas Active",
     "price": 3.99,
+  },
+  10417113661771: {
+    "name": "Roots Courtline Ónix",
+    "price": 59.90,
+  },
+  10417113497931: {
+    "name": "Roots Courtline Sierra",
+    "price": 59.90,
   }
 }
