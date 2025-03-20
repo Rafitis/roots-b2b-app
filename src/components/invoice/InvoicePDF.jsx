@@ -96,7 +96,6 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
   const total_iva = total - total_sin_iva;
   const total_recargo = selectedCustomer.isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0
   const total_fatura = total + total_recargo;
-  console.log(total)
   return (
     <Document>
       <Page size="A4" style={styles.page}>
