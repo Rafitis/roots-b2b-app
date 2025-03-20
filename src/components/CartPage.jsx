@@ -4,6 +4,7 @@ import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import {removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart"
+import { timerMessage } from "node_modules/astro/dist/core/logger/core";
 
 const CartPage = ({ DNI, IBAN}) => {
   const [customerInfo, setCustomerInfo] = useState({
@@ -27,9 +28,10 @@ const CartPage = ({ DNI, IBAN}) => {
 
   // Calcula el total
   const total = cartItems.reduce(
-    (acc, item) => acc + Number(item.price) * Number(item.quantity),
+    (acc, item) => acc +  (Number(item.price) * (1 - Number(item.discount) / 100) * Number(item.quantity)),
     0
   );
+  
 
   return (
     <div>
