@@ -1,5 +1,7 @@
+import { addToCart, calculateDiscount } from "@hooks/useCart"
 
-export default function ItemsTable({items, onDelete}){
+
+export default function ItemsTable({items, onDelete, onUpdateQuantity}){
   return (
     <div className="overflow-auto max-h-[800px] mb-10">
     <table className="table w-full">
@@ -50,7 +52,15 @@ export default function ItemsTable({items, onDelete}){
                   </div>
                 </td>
                 <td className="text-center">{item.color}</td>
-                <td className="text-center">{item.quantity}</td>
+                <td>
+                  <input
+                    type="text"
+                    value={item.quantity}
+                    className="input input-bordered input-xs w-10 max-w-xs" 
+                    onChange={(e) => onUpdateQuantity(e, item)}
+                  />
+                </td>
+                {/* <td className="text-center">{item.quantity}</td> */}
                 <td className="text-center">€{item.price}</td>
                 <td className="text-center">{item.discount}</td>
                 <td className="text-end">€ {total_price}</td>

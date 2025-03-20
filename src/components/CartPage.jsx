@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
-import {removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart"
-import { timerMessage } from "node_modules/astro/dist/core/logger/core";
+import {updateCartQuantity, removeFromCart, removeAllFromCart, getCart, calculateTotal } from "@hooks/useCart"
+
 
 const CartPage = ({ DNI, IBAN}) => {
   const [customerInfo, setCustomerInfo] = useState({
@@ -14,6 +14,12 @@ const CartPage = ({ DNI, IBAN}) => {
     isRecharge: false,
   });
   const [cartItems, setCartItems] = useState(getCart());
+
+  const handleUpdateQuantity = (e, item) => {
+    const newQuantity = Number(e.target.value)
+    updateCartQuantity(item, newQuantity)
+    setCartItems(getCart())
+  }
 
   // Función para eliminar un item del carrito
   const handleDeleteItem = (item) => {
@@ -27,10 +33,7 @@ const CartPage = ({ DNI, IBAN}) => {
   };
 
   // Calcula el total
-  const total = cartItems.reduce(
-    (acc, item) => acc +  (Number(item.price) * (1 - Number(item.discount) / 100) * Number(item.quantity)),
-    0
-  );
+  const total = calculateTotal();
   
 
   return (
@@ -38,7 +41,7 @@ const CartPage = ({ DNI, IBAN}) => {
       <h2 className="text-xl font-bold mb-4">Información del Cliente</h2>
       <ClientForm onStateChange={setCustomerInfo} />
       <h2 className="text-xl font-bold my-4">Carrito de Compras</h2>
-      <ItemsTable items={cartItems} onDelete={handleDeleteItem} />
+      <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
       <div className="flex justify-between">
         <InvoiceDownload
           items={cartItems}

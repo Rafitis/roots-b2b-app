@@ -7,10 +7,17 @@ export const itemsStore = persistentAtom("cart", [], {
   decode: JSON.parse,
 });
 
+
 // Función para obtener el carrito (si no es un array, devuelve [])
 export function getCart() {
   const cart = itemsStore.get();
   return Array.isArray(cart) ? cart : [];
+}
+
+export function calculateTotal() {
+  const cart = getCart();
+  const total = cart.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
+  return total;
 }
 
 function generateKey(product_id, size, color) {
@@ -39,6 +46,19 @@ function updateCartDiscount(tag, product_id) {
     }
   });
   itemsStore.set(cart);
+}
+
+export function updateCartQuantity(item, newQuantity) {
+  const cart = getCart();
+  const newCart = cart.map((cartItem) => {
+    if (cartItem.id === item.id) {
+      return { ...cartItem, 
+        quantity: newQuantity , 
+        discount: calculateDiscount(item.tag, newQuantity) };
+    }
+    return cartItem;
+  });
+  itemsStore.set(newCart);
 }
 
 export function addToCart({ tag, product, quantity, size, color }) {
