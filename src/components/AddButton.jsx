@@ -15,7 +15,8 @@
     const [colorSelected, setColorSelected] = useState(initialColor)
     const [sizeSelected, setSizeSelected] = useState(initialSize)
     const [price, setPrice] = useState(product?.Precio)
-    
+    const [unitPrice, setUnitPrice] = useState(product?.Precio)
+
     function handleAddElementToCart() {
       
       if (quantity === 0) return
@@ -36,8 +37,10 @@
       setQuantity(newQuantity)
       const discount = calculateDiscount(tag, newQuantity)
       const discountFactor = 1 - discount / 100;
-      const total_price = ( newQuantity * product?.Precio * discountFactor).toFixed(2);
+      const total_price = ( newQuantity * (product?.Precio * discountFactor).toFixed(2)).toFixed(2);
+      const new_unit_price = (product?.Precio * discountFactor).toFixed(2)
       setPrice(total_price)
+      setUnitPrice( new_unit_price)
     }
 
     return (
@@ -73,6 +76,9 @@
         <button className="btn btn-sm rounded-md btn-primary w-full font-semibold text-lg hover:bg-indigo-500 transition duration-200 hover:scale-105 text-primary-content hover:text-indigo-50" onClick={handleAddElementToCart}>
           <CartIcon />
           Añadir <ArrowLeftIcon /> {price}€
+        <div className="w-full text-end">
+          <div className="stat-desc">*Precio por Unidad: {unitPrice}€</div>
+        </div>
         </button>
       </div>
     </div>
