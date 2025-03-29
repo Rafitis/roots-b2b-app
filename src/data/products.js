@@ -47,5 +47,17 @@ export const SHOES_DATA = {
   10417113497931: {
     "name": "Roots Courtline Sierra",
     "price": 59.90,
-  }
+  },
+  10510903279947: {
+    "name": "Roots Livana Leopardo",
+    "price": 44.90,
+  },
+  10510903345483: {
+    "name": "Roots Livana Vichy",
+    "price": 44.90,
+  },
+  10510902624587: {
+    "name": "Roots Livana Zebra",
+    "price": 44.90,
+  },
 }
