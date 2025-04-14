@@ -10,11 +10,11 @@ export const SHOES_DATA = {
   },
   10080761151819: {
     "name": "Roots Urban Beige",
-    "price": 56.25,
+    "price": 54.20,
   },
   10093317783883: {
     "name": "Roots Urban Grises",
-    "price": 56.25,
+    "price": 54.20,
   },
   8586217324875: {
     "name": "Roots Causal",
