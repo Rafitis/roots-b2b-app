@@ -26,19 +26,26 @@ function generateKey(product_id, size, color) {
 
 export function calculateDiscount(tag, quantity) {
   if (tag === "ROOTS CARE" || tag === "CALCETINES") {
-    if (quantity >= 52) return 30; // 30% de descuento
-    if (quantity >= 16) return 25; // 25% de descuento
-    if (quantity >= 2) return 20; // 20% de descuento
+    if (quantity >= 52) return 40; // 40% de descuento
+    if (quantity >= 16) return 35; // 35% de descuento
+    if (quantity >= 2) return 30; // 30% de descuento
     return 0;
   }
+  // if (tag === "CALZADO") {
+  //   if (quantity >= 40) return 10; // 40% de descuento
+  // }
   return 0;
 }
 
-function updateCartDiscount(tag, product_id) {
+function getTotalItemsSameID(cart, product_id) {
+  const sameModelProducts = cart.filter((item) => item.product_id === product_id);
+  return sameModelProducts.reduce((acc, item) => acc + item.quantity, 0);
+}
+
+export function updateCartDiscount(tag, product_id) {
   const cart = getCart();
   // Filtramos todos los items del mismo producto
-  const sameModelProducts = cart.filter((item) => item.product_id === product_id);
-  const total_quantity = sameModelProducts.reduce((acc, item) => acc + item.quantity, 0);
+  const total_quantity = getTotalItemsSameID(cart, product_id);
   // Actualizamos el descuento de cada uno
   cart.forEach((item) => {
     if (item.product_id === product_id) {
@@ -49,12 +56,13 @@ function updateCartDiscount(tag, product_id) {
 }
 
 export function updateCartQuantity(item, newQuantity) {
-  const cart = getCart();
+  const cart = getCart();  
+
   const newCart = cart.map((cartItem) => {
-    if (cartItem.id === item.id) {
+    if (cartItem.id === item.id){
       return { ...cartItem, 
-        quantity: newQuantity , 
-        discount: calculateDiscount(item.tag, newQuantity) };
+        quantity: newQuantity 
+      };
     }
     return cartItem;
   });
@@ -70,7 +78,7 @@ export function addToCart({ tag, product, quantity, size, color }) {
   if (productAlreadyAdded) {
     productAlreadyAdded.quantity += quantity;
     itemsStore.set(cart);
-    updateCartDiscount(tag, product.id);
+    updateCartDiscount(tag, product.product_id);
     return;
   }
 

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
-import {updateCartQuantity, removeFromCart, removeAllFromCart, getCart, calculateTotal } from "@hooks/useCart"
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotal } from "@hooks/useCart"
 
 
 const CartPage = ({ DNI, IBAN}) => {
@@ -18,6 +18,7 @@ const CartPage = ({ DNI, IBAN}) => {
   const handleUpdateQuantity = (e, item) => {
     const newQuantity = Number(e.target.value)
     updateCartQuantity(item, newQuantity)
+    updateCartDiscount(item.tag, item.product_id)
     setCartItems(getCart())
   }
 

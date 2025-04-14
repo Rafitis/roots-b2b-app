@@ -1,5 +1,5 @@
 import {assert, test} from "vitest";
-import { getCart, itemsStore, removeAllFromCart, updateCartQuantity } from "@hooks/useCart";
+import { getCart, itemsStore, removeAllFromCart, updateCartDiscount, updateCartQuantity } from "@hooks/useCart";
 
 test("calcula el total del carrito con descuento", async () => {
     removeAllFromCart();
@@ -77,7 +77,7 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
             discount: 0,
             id: "10001_Pequeño: Talla 36-42_",
             name: "Banda correctora de Juanetes",
-            price: "11.99",
+            price: "9.91",
             product_id: 10001,
             product_img: "https://cdn.shopify.com/",
             quantity: 1,
@@ -89,7 +89,7 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
             discount: 0,
             id: "10002_S (35-39)_",
             name: "Espaciadores de dedos",
-            price: "12.99",
+            price: "10.74",
             product_id: 10002,
             product_img: "https://cdn.shopify.com/",
             quantity: 1,
@@ -101,7 +101,7 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
     const cart = getCart()
     itemsStore.set([...cart, ...mockCart])
     const total = await import("@hooks/useCart").then((module) => module.calculateTotal())
-    assert.equal(total.toFixed(2), 24.98)
+    assert.equal(total.toFixed(2), 20.65)
     
     const updateItem = {
         color: "",
@@ -116,8 +116,9 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
         tag: "ROOTS CARE"
     }
     updateCartQuantity(updateItem, 2)
+    updateCartDiscount(updateItem.tag, updateItem.product_id)
     const updatedCart = getCart()
     assert.equal(updatedCart[1].quantity, 2) // El item con id 8595970195787_S (35-39)_ tiene una nueva cantidad de 2
     const new_total = await import("@hooks/useCart").then((module) => module.calculateTotal())
-    assert.equal(new_total.toFixed(2), 32.77)
+    assert.equal(new_total.toFixed(2), 24.95)
 })

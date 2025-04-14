@@ -20,10 +20,11 @@ export async function getShopifyProducts() {
   );
 
   const getProductPrice = (product) => {
+    // Se calcula el precio sin IVA.
     if (SHOES_DATA[product.id]) {
-      return parseFloat(SHOES_DATA[product.id].price).toFixed(2)
+      return (parseFloat(SHOES_DATA[product.id].price) / 1.21).toFixed(2)
     }
-    return parseFloat(product.variants[0].price).toFixed(2)
+    return (parseFloat(product.variants[0].price) / 1.21).toFixed(2)
   }
 
   const products = data.products
