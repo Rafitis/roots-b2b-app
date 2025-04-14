@@ -17,7 +17,7 @@ export const POST = async ({ request, cookies, redirect }) => {
   });
 
   if (error) {
-    return new Response(error.message, { status: 500 });
+    return redirect("/signin");
   }
 
   const { access_token, refresh_token } = data.session;
