@@ -25,10 +25,14 @@ const pathname = Astro.url.pathname; // '/cart', '/products', etc.
     <body class="min-h-screen flex flex-col">
 		{pathname !== '/carrito' && (
 		  <AnimatedLogo client:only />
-		)} ↓
+		  <Header showLogo={false} client:only />
+		)}
+		
+		{pathname === '/carrito' && (
+		<Header showLogo={true} client:only />
+		)}
 
     <!-- Header con React -->
-    <Header client:only />
 
     <!-- Contenido principal -->
     <main class="flex-1 p-2">

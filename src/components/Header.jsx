@@ -9,7 +9,7 @@ import { cartCountStore } from '@hooks/useCart'
  * Shows logo, navigation to products, cart icon, and logout button.
  * The logout button calls /api/auth/signout and redirects to /login.
  */
-export default function Header() {
+export default function Header({showLogo}) {
     const cartCount = useStore(cartCountStore)
     
     const [isScrolled, setIsScrolled] = useState(false);
@@ -37,7 +37,15 @@ export default function Header() {
         {/* Logo and Home Link */}
         <a href="/main-view" className="flex items-center">
           <span className="text-xl font-bold text-gray-800">Roots Barefoot</span>
-        </a>
+        </a> 
+        {/* Logo */}
+        {showLogo ? 
+          <img
+          src="/B2B_RootsBarefoot.png"
+          alt="Roots Barefoot Logo"
+          class="w-16 h-auto object-cover rounded-2xl items-center mx-auto justify-center flex"
+          />
+         : null}
 
         {/* Navigation Links */}
         <nav className="flex items-center space-x-6">
