@@ -3,6 +3,13 @@ import { Page, Text, View, Image, Document, StyleSheet } from "@react-pdf/render
 
 // Estilos del PDF
 const styles = StyleSheet.create({
+  invoiceTitle: {
+    fontSize: 18,                // más grande que el texto normal
+    fontFamily: "Helvetica-Bold",// negrita
+    textAlign: "center",         // centrado horizontal
+    textDecoration: "underline", // subrayado
+    marginBottom: 10,            // espacio bajo el título
+  },
   page: {
     padding: 30,
     fontSize: 10,
@@ -89,16 +96,30 @@ function formatDate(date) {
   return dateObj.toLocaleDateString("es-ES");
 }
 
-// Componente InvoicePDF
-const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
+function calculateTotal(items) {
+  const total = items.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
+  return total
+}
 
-  const total_sin_iva = total;
-  const iva = total * 0.21;
+// Componente InvoicePDF
+const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title }) => {
+
+  const total_sin_iva = calculateTotal(items);
+  const iva = total_sin_iva * 0.21;
   const total_recargo = selectedCustomer.isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0
-  const total_fatura = total + iva + total_recargo;
-  return (
-    <Document>
+  const total_fatura = total_sin_iva + iva + total_recargo;
+  
+  let thirty_percent = 0;
+  let remaining_balance = 0;
+  if (preSale) {
+    thirty_percent = total_fatura * 0.3
+    remaining_balance = total_fatura - thirty_percent
+  }
+
+
+  const content = (
       <Page size="A4" style={styles.page}>
+        <Text style={styles.invoiceTitle}>{title}</Text>
         {/* Encabezado de facturación */}
         <View style={styles.header}>
           <View>
@@ -117,13 +138,12 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
             <Image src="/B2B_RootsBarefoot.png" style={{ width: 200, height: 150 }} />
           </View>
         </View>
-
+      
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Text style={styles.bold}>Fecha: {formatDate(new Date())}</Text>
           <Text style={styles.bold}>Factura: </Text>
         </View>
 
-        {/* Tabla de productos */}
         <View style={styles.table}>
           {/* Encabezado de la tabla */}
           <View style={[styles.row, { backgroundColor: "#f0f0f0" }]}>
@@ -159,13 +179,25 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
             })}
         </View>
 
-        {/* Totales */}
-        <View style={styles.total}>
-          <Text>TOTAL SIN IVA € {total_sin_iva.toFixed(2)}</Text>
-          <Text>IVA 21% € {iva.toFixed(2)}</Text>
-          <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
-          <Text style={styles.bold}>TOTAL FACTURA € {total_fatura.toFixed(2)}</Text>
-        </View>
+        {/* Totales No Presale */}
+        {!preSale && (
+          <View style={styles.total}>
+            <Text>TOTAL SIN IVA € {total_sin_iva.toFixed(2)}</Text>
+            <Text>IVA 21% € {iva.toFixed(2)}</Text>
+            <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
+            <Text style={styles.bold}>TOTAL € {total_fatura.toFixed(2)}</Text>
+          </View>
+        )}
+        {/* Totales Presale */}
+        {preSale && (
+          <View style={styles.total}>
+            <Text>TOTAL SIN IVA € {total_sin_iva.toFixed(2)}</Text>
+            <Text>IVA 21% € {iva.toFixed(2)}</Text>
+            <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
+            <Text style={styles.bold}>RESERVA 30% € {thirty_percent.toFixed(2)}</Text>
+            <Text style={styles.bold}>PENDIENTE DE PAGO € {remaining_balance.toFixed(2)}</Text>
+          </View>
+        )}
 
         {/* Datos de facturación */}
         <View style={styles.remitente}>
@@ -179,8 +211,12 @@ const InvoicePDF = ({ items = [], total, dni, iban, selectedCustomer }) => {
           <Text>Remitente: Marcos Marra León</Text>
         </View>
       </Page>
-    </Document>
   );
+
+  if (onlyPage) {
+    return content;
+  }
+  return <Document>{content}</Document>;
 };
 
 export default InvoicePDF;
