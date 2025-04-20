@@ -15,7 +15,7 @@ const CustomerForm = ({ onStateChange }) => {
   }, [formData, onStateChange]);
 
   return (
-    <div className="flex flex-col gap-4 p-4 border rounded">
+    <div className="w-full flex flex-col justify-center gap-4 p-4 border rounded">
       <input
         type="text"
         placeholder="Nombre Fiscal"

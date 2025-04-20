@@ -39,9 +39,9 @@ const CartPage = ({ DNI, IBAN}) => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Información del Cliente</h2>
+      <h2 className="text-xl font-bold py-10">Información del Cliente</h2>
       <ClientForm onStateChange={setCustomerInfo} />
-      <h2 className="text-xl font-bold my-4">Carrito de Compras</h2>
+      <h2 className="text-xl font-bold py-10">Carrito de Compras</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
       <div className="flex justify-between">
         <InvoiceDownload
