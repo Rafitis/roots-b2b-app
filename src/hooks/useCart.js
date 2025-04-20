@@ -1,12 +1,17 @@
 // useCart.js
 import { persistentAtom } from "@nanostores/persistent";
-
+import { computed } from 'nanostores'
 // Definimos el store usando la clave "cart" y un array vacío como valor inicial.
 export const itemsStore = persistentAtom("cart", [], {
   encode: JSON.stringify,
   decode: JSON.parse,
 });
 
+// store derivado para el contador de items (suma de quantities)
+export const cartCountStore = computed(itemsStore, (cart) => {
+  if (!Array.isArray(cart)) return 0
+  return cart.reduce((sum, item) => sum + item.quantity, 0)
+})
 
 // Función para obtener el carrito (si no es un array, devuelve [])
 export function getCart() {
@@ -20,6 +25,7 @@ export function calculateTotal() {
   return total;
 }
 
+// TODO: DEPRECATED, se cambia a variant.ID_sku
 function generateKey(product_id, size, color) {
   return `${product_id}_${size}_${color}`;
 }
@@ -31,9 +37,6 @@ export function calculateDiscount(tag, quantity) {
     if (quantity >= 2) return 30; // 30% de descuento
     return 0;
   }
-  // if (tag === "CALZADO") {
-  //   if (quantity >= 40) return 10; // 40% de descuento
-  // }
   return 0;
 }
 
@@ -69,7 +72,42 @@ export function updateCartQuantity(item, newQuantity) {
   itemsStore.set(newCart);
 }
 
-export function addToCart({ tag, product, quantity, size, color }) {
+export function addToCart({ tag, product, quantity, variant, isPreOrder }) {
+  console.log(tag, product, quantity, variant, isPreOrder)
+  if (!quantity || quantity < 1) return;
+  const key = variant.ID_sku;
+  const cart = getCart();
+  const productAlreadyAdded = cart.find((item) => item.id === key);
+
+  if (productAlreadyAdded) {
+    productAlreadyAdded.quantity += quantity;
+    itemsStore.set(cart);
+    updateCartDiscount(tag, product.ID_producto);
+    return;
+  }
+
+  const discount = calculateDiscount(tag, quantity);
+  const newItem = {
+    id: key,
+    product_img: product.imagen,
+    product_id: product.ID_producto,
+    name: product.nombre,
+    quantity: quantity,
+    discount: discount,
+    size: variant.talla,
+    color: variant.color,
+    price: variant.precio,
+    sku: variant.SKU,
+    isPreOrder: isPreOrder,
+    tag: tag,
+  };
+
+  itemsStore.set([...cart, newItem]);
+  updateCartDiscount(tag, product.ID_producto);
+}
+
+//TODO: Funcióin para deprecar
+export function addToCart_OLD({ tag, product, quantity, size, color }) {
   if (!quantity || quantity < 1) return;
   const key = generateKey(product.id, size, color);
   const cart = getCart();
@@ -101,7 +139,7 @@ export function addToCart({ tag, product, quantity, size, color }) {
 }
 
 export function removeFromCart(element) {
-  const key = generateKey(element.product_id, element.size, element.color);
+  const key = element.id
   const cart = getCart();
   const newCart = cart.filter((item) => item.id !== key);
   itemsStore.set(newCart);

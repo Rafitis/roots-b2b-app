@@ -1,0 +1,15 @@
+---
+export const prerender = false
+
+import Layout from "@layouts/Layout.astro";
+import {ProductsByTag} from "@components/ProductComponents.jsx";
+import { getNestedCatalog } from "@lib/stock_info.js";
+
+const nestedCatalog = await getNestedCatalog();
+---
+
+<Layout title="Welcome to Roots Barefoot Budget Tool">
+	<main class="flex container mx-auto w-full place-content-center mt-[500px]">
+        <ProductsByTag client:load catalog={nestedCatalog} />
+	</main>
+</Layout>

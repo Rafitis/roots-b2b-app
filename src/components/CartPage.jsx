@@ -30,7 +30,7 @@ const CartPage = ({ DNI, IBAN}) => {
 
   const handleDeleteAll = () => {
     const newCart = removeAllFromCart();
-    setListCart(newCart);
+    setCartItems(newCart);
   };
 
   // Calcula el total
@@ -46,7 +46,6 @@ const CartPage = ({ DNI, IBAN}) => {
       <div className="flex justify-between">
         <InvoiceDownload
           items={cartItems}
-          total={total}
           customerInfo={customerInfo}
           dni={DNI}
           iban={IBAN}
