@@ -97,7 +97,6 @@ export function ProductCard({ product }) {
         inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       ].join(' ')}
     >
-      <Toaster position="bottom-right" reverseOrder={false} />
 
       {isPreOrder && (
         <div className="absolute top-2 right-2 bg-yellow-300 text-xs font-semibold uppercase px-2 py-1 rounded z-10">
@@ -207,6 +206,7 @@ export function ProductsByTag({ catalog }) {
         <section key={tag} className="mb-20">
           <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>
           <div className="divider"></div>
+          <Toaster position="bottom-right" reverseOrder={false} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {grouped[tag].map(product => (
               <ProductCard key={product.ID_producto} product={product} />
