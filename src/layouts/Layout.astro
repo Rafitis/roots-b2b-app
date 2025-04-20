@@ -1,34 +1,43 @@
 ---
-interface Props {
-	title: string;
+import "@styles/global.css";
+import Footer from "@components/Footer.astro";
+import AnimatedLogo from '../components/AnimatedLogo.jsx';
+import Header from '../components/Header.jsx';
+
+export interface Props {
+  cartCount?: number;
+  title?: string;
 }
 
-import "@styles/global.css";
-import NavBar from "@components/NavBar.astro";
-import Footer from "@components/Footer.astro";
-const { title = 'Roots Barefoot B2B Budget Generator' } = Astro.props;
+const { title } = Astro.props;
+const pathname = Astro.url.pathname; // '/cart', '/products', etc.
 ---
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-	<head>
-		<meta charset="UTF-8" />
+  <head>
+    <meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon_roots.webp" />
 		<title>{title}</title>
-	</head>
-	<body class="md:place-items-center justify-center">
-		<img
-		src="/B2B_RootsBarefoot.png"
-		alt="Roots Barefoot Logo"
-		class="w-96 h-auto object-cover mt-20 rounded-2xl"
-		/>
-		<NavBar />
-		<div class="h-full">
-			<slot />
-		</div>
-		<Footer />
-	</body>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Logo animado -->
+    <body class="min-h-screen flex flex-col">
+		{pathname !== '/carrito' && (
+		  <AnimatedLogo client:only />
+		)} ↓
+
+    <!-- Header con React -->
+    <Header client:only />
+
+    <!-- Contenido principal -->
+    <main class="flex-1 p-2">
+      <slot />
+    </main>
+
+    <!-- Footer opcional -->
+    <Footer class="bg-gray-800 text-white py-4" />
+  </body>
 </html>
 <style is:global>
 	:root {
