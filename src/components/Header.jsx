@@ -31,12 +31,12 @@ export default function Header({showLogo}) {
     };
   
     return (
-      <header className={`fixed top-0 h-[90px] w-full z-50 px-6 py-4 flex items-center justify-between transition-colors duration-300 ease-in-out ${
+      <header className={`fixed top-0 h-[90px] w-full z-50 px-6 py-4 flex items-center justify-between transition-colors animate-fade-in-up animate-duration-slow ${
         isScrolled ? 'bg-white shadow-md' : 'bg-[#faf6f4] shadow-none'
       }`}>
         {/* Logo and Home Link */}
         <a href="/main-view" className="flex items-center">
-          <span className="text-xl font-bold text-gray-800">Roots Barefoot</span>
+          <span className="text-lg font-bold text-gray-800 uppercase">Roots Barefoot</span>
         </a> 
         {/* Logo */}
         {showLogo ? 

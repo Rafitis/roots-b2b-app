@@ -56,7 +56,7 @@ export default function AnimatedLogo() {
 
   return (
     <div 
-      className={`absolute md:fixed inset-x-0 ${isMobile ? 'top-[20vh]' : ''} flex justify-center pointer-events-none md:z-[60]`}
+      className={`absolute md:fixed inset-x-0 ${isMobile ? 'top-[20vh]' : ''} flex justify-center pointer-events-none md:z-[60] animate-fade-in-up animate-duration-[700ms]`}
       style={isMobile ? {} : { top: 0}}
     >
       <img 
