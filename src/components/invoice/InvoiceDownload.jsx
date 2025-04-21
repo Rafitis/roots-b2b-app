@@ -16,8 +16,8 @@ const fallbackStyles = StyleSheet.create({
 });
 
 const CombinedInvoice = React.memo( ({
-  regularItems,
-  preOrderItems,
+  regularItems = [],
+  preOrderItems = [],
   dni,
   iban,
   selectedCustomer,
@@ -28,18 +28,6 @@ const CombinedInvoice = React.memo( ({
   const safePreOrderItems = Array.isArray(preOrderItems) ? preOrderItems : [];
   
   const hasAny = safeRegularItems.length > 0 || safePreOrderItems.length > 0;
-
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    // Dar tiempo para que react-pdf se inicialice
-    const timer = setTimeout(() => setIsReady(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!isReady) {
-    return <span>Preparando documento...</span>;
-  }
 
   return (
     <Document>
@@ -53,6 +41,7 @@ const CombinedInvoice = React.memo( ({
               dni={dni}
               iban={iban}
               selectedCustomer={selectedCustomer}
+              preSale={false}
             />
           )}
           {preOrderItems.length > 0 && (
@@ -63,6 +52,7 @@ const CombinedInvoice = React.memo( ({
               dni={dni}
               iban={iban}
               selectedCustomer={selectedCustomer}
+              preSale={true}
             />
           )}
         </>
@@ -96,9 +86,22 @@ const InvoiceDownload = ({
     display: 'inline-block'
   };
 
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // Dar tiempo para que react-pdf se inicialice
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isReady) {
+    return <span>Preparando documento...</span>;
+  }
+
   return (
     <ErrorBoundary>
       <PDFDownloadLink
+        key={`${regularItems.length}-${preOrderItems.length}`}
         document={
           <CombinedInvoice
             regularItems={regularItems}

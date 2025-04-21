@@ -103,7 +103,6 @@ function calculateTotal(items) {
 
 // Componente InvoicePDF
 const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title }) => {
-
   const total_sin_iva = calculateTotal(items);
   const iva = total_sin_iva * 0.21;
   const total_recargo = selectedCustomer.isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0
