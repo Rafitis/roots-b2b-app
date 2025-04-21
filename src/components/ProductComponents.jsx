@@ -147,7 +147,8 @@ export function ProductCard({ product }) {
         <div className="flex items-center justify-between mb-2">
           <span className="text-lg font-bold">€{totalPrice.toFixed(2)}</span>
           <span className="text-sm">
-            {isOutOfStock ? 'Sin stock' : `Stock: ${selectedVariant.stock_actual}`}
+          {/* {isOutOfStock ? 'Sin stock' : `Stock: ${selectedVariant.stock_actual}`} */}
+          {isOutOfStock ? 'Sin stock' : ''}
           </span>
         </div>
 
@@ -175,10 +176,10 @@ export function ProductCard({ product }) {
           onClick={handleAddToCart}
           disabled={isOutOfStock}
           className={[
-            'w-full py-2 rounded-md text-white text-lg transition',
+            'btn btn-primary w-full py-2 rounded-md text-white text-lg transition',
             isOutOfStock
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
+              : 'bg-primary hover:bg-blue-700'
           ].join(' ')}
         >
           Añadir al carrito
