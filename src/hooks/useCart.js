@@ -73,7 +73,6 @@ export function updateCartQuantity(item, newQuantity) {
 }
 
 export function addToCart({ tag, product, quantity, variant, isPreOrder }) {
-  console.log(tag, product, quantity, variant, isPreOrder)
   if (!quantity || quantity < 1) return;
   const key = variant.ID_sku;
   const cart = getCart();
