@@ -6,9 +6,10 @@ import {ProductsByTag} from "@components/ProductComponents.jsx";
 import { getNestedCatalog } from "@lib/stock_info.js";
 
 const nestedCatalog = await getNestedCatalog();
+const currentLocale = 'es';
 ---
 
-<Layout title="Welcome to Roots Barefoot Budget Tool">
+<Layout title="Bienvenido a la herramienta de presupuesto de Roots Barefoot" currentLocale={currentLocale}>
 	<main class="flex container mx-auto w-full place-content-center mt-[500px]">
         <ProductsByTag client:load catalog={nestedCatalog} />
 	</main>

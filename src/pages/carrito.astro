@@ -1,14 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import CartPage from "@components/CartPage.jsx";
-
   
 const DNI = import.meta.env.INVOICE_DNI;
 const IBAN = import.meta.env.INVOICE_IBAN;
 
+const currentLocale = 'es'
 ---
 
-<Layout title="Welcome to Roots Barefoot Budget Generator">
+<Layout title="Bienvenido a la herramienta de presupuesto de Roots Barefoot" currentLocale={currentLocale}>
   <main class="container mx-auto w-full m-20 p-2">
     <CartPage client:only="react" DNI={DNI} IBAN={IBAN} />
   </main>
