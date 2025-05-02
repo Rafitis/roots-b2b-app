@@ -1,5 +1,6 @@
 
 import { EXCLUDE_ID_PROUDUCTS, SHOES_DATA } from "@data/products.js";
+import { productsName } from "@i18n/ui";
 
 const API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
@@ -118,45 +119,58 @@ export async function getProductsBySKU() {
 }
 
 const getProductPrice = (product) => {
-    // Se calcula el precio sin IVA.
-    if (SHOES_DATA[product.id]) {
-      return (parseFloat(SHOES_DATA[product.id].price) / 1.21).toFixed(2)
-    }
-    return (parseFloat(product.variants[0].price) / 1.21).toFixed(2)
+  // Se calcula el precio sin IVA.
+  if (SHOES_DATA[product.id]) {
+    return (parseFloat(SHOES_DATA[product.id].price) / 1.21).toFixed(2)
   }
+  return (parseFloat(product.variants[0].price) / 1.21).toFixed(2)
+}
+
+export function translateProducts(products, currentLang) {
+  return products.map(product => ({
+    ...product,
+    nombre: productsName[currentLang][product.ID_producto] || product.nombre,
+    tags: product.tags.map(tag => productsName[currentLang][tag] || tag),
+    variants: product.variants.map(variant => ({
+      ...variant,
+      color: productsName[currentLang][variant.color] || variant.color,
+      talla: productsName[currentLang][variant.talla] || variant.talla
+    }))
+  }));
+}
 
 export async function getNestedCatalog() {
-    const products = await getAllProducts();  // de tu función previa
-    const filteredProducts = products.filter(p => !EXCLUDE_ID_PROUDUCTS.includes(p.id));
-    const catalog = filteredProducts.map(product => {
-      // Desestructuramos lo que nos interesa del producto
-      const {
-        id: ID_producto,
-        title: nombre,
-        tags,
-        handle,
-        image,
-        published_at,
-        variants
-      } = product;
+  const products = await getAllProducts();  // de tu función previa
+  const filteredProducts = products.filter(p => !EXCLUDE_ID_PROUDUCTS.includes(p.id));
+  const catalog = filteredProducts.map(product => {
+    // Desestructuramos lo que nos interesa del producto
+    const {
+      id: ID_producto,
+      title: nombre,
+      tags,
+      handle,
+      image,
+      published_at,
+      variants
+    } = product;
   
-      return {
-        ID_producto,
-        nombre,
-        tags: tags ? tags.split(',').map(t => t.trim()) : [],
-        imagen: image ? image.src : null,
-        link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
-        status: published_at ? "active" : "inactive",
-        variants: variants.map(variant => ({
-          ID_sku:       variant.id,
-          SKU:          variant.sku,
-          talla:        variant.option1,
-          color:        variant.option2,
-          precio:       getProductPrice(product),
-          stock_actual: variant.inventory_quantity || 0
-        }))
-      };
-    });
-  
-    return catalog;
-  }
+    return {
+      ID_producto,
+      nombre,
+      tags: tags ? tags.split(',').map(t => t.trim()) : [],
+      imagen: image ? image.src : null,
+      link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
+      status: published_at ? "active" : "inactive",
+      variants: variants.map(variant => ({
+        ID_sku:       variant.id,
+        SKU:          variant.sku,
+        talla:        variant.option1,
+        color:        variant.option2,
+        precio:       getProductPrice(product),
+        stock_actual: variant.inventory_quantity || 0
+      }))
+    };
+  });
+
+  return catalog;
+}

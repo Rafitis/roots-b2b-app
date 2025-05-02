@@ -9,6 +9,8 @@ import {
 } from '@react-pdf/renderer';
 import InvoicePDF from '@components/invoice/InvoicePDF';
 import ErrorBoundary from '@components/errors/ErrorBoundary';
+import { useTranslations } from '@i18n/utils';
+import { useI18n } from '@hooks/useI18n';
 
 // Estilo mínimo para la página de fallback
 const fallbackStyles = StyleSheet.create({
@@ -73,6 +75,10 @@ const InvoiceDownload = ({
   customerInfo,
   title
 }) => {
+
+  const { currentLang } = useI18n();
+  const t = useTranslations(currentLang);
+
   // Usa useMemo para evitar recálculos innecesarios
   const preOrderItems = useMemo(() => items.filter(i => i.isPreOrder), [items]);
   const regularItems = useMemo(() => items.filter(i => !i.isPreOrder), [items]);
@@ -95,7 +101,7 @@ const InvoiceDownload = ({
   }, []);
 
   if (!isReady) {
-    return <span>Preparando documento...</span>;
+    return <span>{t('download.generating')}</span>;
   }
 
   return (
@@ -112,15 +118,15 @@ const InvoiceDownload = ({
             title={title}
           />
         }
-        fileName="factura.pdf"
+        fileName={`${t('download.documentTitle')}.pdf`}
         style={linkStyle}
       >
         {({ loading, error }) => {
           if (error) {
             console.error('Error generando factura combinada:', error);
-            return 'Error generando factura';
+            return t('download.error');
           }
-          return loading ? 'Generando factura...' : 'Descargar factura';
+          return loading ? t('download.generating') : t('download.message');
         }}
       </PDFDownloadLink>
     </ErrorBoundary>

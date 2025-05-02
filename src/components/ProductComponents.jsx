@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addToCart, calculateDiscount } from '@hooks/useCart';
 import toast, { Toaster } from 'react-hot-toast';
+import { useI18n } from '@hooks/useI18n';
+import { useTranslations } from '@i18n/utils';
 
 const notify = () => toast.success('Producto añadido al carrito');
 
@@ -29,6 +31,9 @@ export function VariationOption({ variant, isSelected, onSelect, isPreOrder }) {
 }
 
 export function ProductCard({ product }) {
+  const { currentLang } = useI18n();
+  const t = useTranslations(currentLang);
+
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
 
@@ -100,7 +105,7 @@ export function ProductCard({ product }) {
 
       {isPreOrder && (
         <div className="absolute top-2 right-2 bg-yellow-300 text-xs font-semibold uppercase px-2 py-1 rounded z-10">
-          PREVENTA
+          {t('product.preOrder')}
         </div>
       )}
 
@@ -127,7 +132,7 @@ export function ProductCard({ product }) {
 
         {product.variants?.length > 1 && (
           <div className="mb-4">
-            <p className="font-medium mb-2">Elige variante:</p>
+            <p className="font-medium mb-2">{t('product.variant')}:</p>
             <div className="flex flex-wrap">
               {product.variants.map(variant => (
                 <VariationOption
@@ -148,13 +153,13 @@ export function ProductCard({ product }) {
           <span className="text-lg font-bold">€{totalPrice.toFixed(2)}</span>
           <span className="text-sm">
           {/* {isOutOfStock ? 'Sin stock' : `Stock: ${selectedVariant.stock_actual}`} */}
-          {isOutOfStock ? 'Sin stock' : ''}
+          {isOutOfStock ? t('product.noStock') : ''}
           </span>
         </div>
 
         {selectedVariant && (
           <div className="flex items-center mb-4">
-            <label className="text-sm mr-2">Cantidad:</label>
+            <label className="text-sm mr-2">{t('product.quantity')}:</label>
             <input
               type="number"
               min="1"
@@ -169,7 +174,7 @@ export function ProductCard({ product }) {
         )}
 
         <div className="w-full text-end mb-4">
-          <div className="stat-desc">*Precio por Unidad: €{unitPrice}</div>
+          <div className="stat-desc">*{t('product.pricePerUnit')}: €{unitPrice}</div>
         </div>
 
         <button
@@ -182,7 +187,7 @@ export function ProductCard({ product }) {
               : 'bg-primary hover:bg-blue-700'
           ].join(' ')}
         >
-          Añadir al carrito
+          {t('product.add')}
         </button>
       </div>
     </div>

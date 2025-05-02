@@ -7,13 +7,14 @@ import Header from '../components/Header.jsx';
 export interface Props {
   cartCount?: number;
   title?: string;
+  currentLocale?: string;
 }
 
-const { title } = Astro.props;
+const { title, currentLocale } = Astro.props;
 const pathname = Astro.url.pathname; // '/cart', '/products', etc.
 ---
 <!DOCTYPE html>
-<html lang="es">
+<html lang={currentLocale}>
   <head>
     <meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
@@ -23,21 +24,19 @@ const pathname = Astro.url.pathname; // '/cart', '/products', etc.
   <body class="min-h-screen flex flex-col">
     <!-- Logo animado -->
     <body class="min-h-screen flex flex-col">
-		{pathname !== '/carrito' && (
+		{(pathname !== '/carrito' && pathname !== '/en/carrito') && (
 		  <AnimatedLogo client:only />
 		  <Header showLogo={false} client:only />
 		)}
 		
-		{pathname === '/carrito' && (
+		{(pathname === '/carrito' || pathname === '/en/carrito') && (
 		<Header showLogo={true} client:only />
 		)}
-
-    <!-- Header con React -->
 
     <!-- Contenido principal -->
     <main class="flex-1 p-2">
       <slot />
-    </main>
+    </main>	
 
     <!-- Footer opcional -->
     <Footer class="bg-gray-800 text-white py-4" />
