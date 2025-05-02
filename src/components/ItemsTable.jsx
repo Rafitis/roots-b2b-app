@@ -1,7 +1,10 @@
-import { addToCart, calculateDiscount } from "@hooks/useCart"
-
+import { useTranslations } from "@i18n/utils";
+import { useI18n } from "@hooks/useI18n";
 
 export default function ItemsTable({items, onDelete, onUpdateQuantity}){
+  const { currentLang } = useI18n();
+  const t = useTranslations(currentLang);
+
   return (
     <div className="overflow-auto max-h-[800px] mb-10">
     <table className="table w-full">
@@ -12,12 +15,12 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
               <input type="checkbox" className="checkbox" />
             </label>
           </th>
-          <th>Nombre</th>
-          <th>Color</th>
-          <th className="text-center">Cantidad</th>
-          <th>Precio por Unidad</th>
-          <th>Descuento</th>
-          <th>Precio Total</th>
+          <th>{t('table.name')}</th>
+          <th>{t('table.color')}</th>
+          <th className="text-center">{t('table.quantity')}</th>
+          <th>{t('table.priceUnit')}</th>
+          <th>{t('table.discount')}</th>
+          <th>{t('table.total')}</th>
           <th></th>
         </tr>
       </thead>
@@ -69,7 +72,7 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
                     className="btn btn-xs btn-outline btn-error"
                     onClick={() => onDelete(item)}
                   >
-                    Eliminar
+                    {t('table.delete')}
                   </button>
                 </th>
               </tr>
@@ -80,12 +83,12 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
       <tfoot>
         <tr>
           <th></th>
-          <th>Nombre</th>
-          <th>Color</th>
-          <th className="text-center">Cantidad</th>
-          <th>Precio por Unidad</th>
-          <th>Descuento</th>
-          <th>Precio Total</th>
+          <th>{t('table.name')}</th>
+          <th>{t('table.color')}</th>
+          <th className="text-center">{t('table.quantity')}</th>
+          <th>{t('table.priceUnit')}</th>
+          <th>{t('table.discount')}</th>
+          <th>{t('table.total')}</th>
           <th></th>
         </tr>
       </tfoot>

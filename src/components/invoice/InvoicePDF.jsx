@@ -1,5 +1,7 @@
 // InvoicePDF.jsx
 import { Page, Text, View, Image, Document, StyleSheet } from "@react-pdf/renderer";
+import { useTranslations } from "@i18n/utils";
+import { useI18n } from "@hooks/useI18n";
 
 // Estilos del PDF
 const styles = StyleSheet.create({
@@ -103,6 +105,9 @@ function calculateTotal(items) {
 
 // Componente InvoicePDF
 const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title }) => {
+  const { currentLang } = useI18n();
+  const t = useTranslations(currentLang);
+
   const total_sin_iva = calculateTotal(items);
   const iva = total_sin_iva * 0.21;
   const total_recargo = selectedCustomer.isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0
@@ -122,15 +127,15 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
         {/* Encabezado de facturación */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.bold}>DETALLES DE FACTURACIÓN CLIENTE:</Text>
+            <Text style={styles.bold}>{t("invoice.clientDetails")}:</Text>
             <Text>
-              <Text style={styles.bold}>NOMBRE</Text>: {selectedCustomer?.fiscal_name}
+              <Text style={styles.bold}>{t("invoice.clientName")}</Text>: {selectedCustomer?.fiscal_name}
             </Text>
             <Text>
-              <Text style={styles.bold}>NIF o CIF</Text>: {selectedCustomer?.nif_cif}
+              <Text style={styles.bold}>{t("invoice.clientNifCif")}</Text>: {selectedCustomer?.nif_cif}
             </Text>
             <Text>
-              <Text style={styles.bold}>DIRECCIÓN</Text>: {selectedCustomer?.address}
+              <Text style={styles.bold}>{t("invoice.clientAddress")}</Text>: {selectedCustomer?.address}
             </Text>
           </View>
           <View>
@@ -139,21 +144,21 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
         </View>
       
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Text style={styles.bold}>Fecha: {formatDate(new Date())}</Text>
-          <Text style={styles.bold}>Factura: </Text>
+          <Text style={styles.bold}>{t("invoice.dateTitle")}: {formatDate(new Date())}</Text>
+          <Text style={styles.bold}>{t("invoice.invoiceNumber")}: </Text>
         </View>
 
         <View style={styles.table}>
           {/* Encabezado de la tabla */}
           <View style={[styles.row, { backgroundColor: "#f0f0f0" }]}>
-            <Text style={styles.cell_title}>Concepto</Text>
-            <Text style={styles.cell_title_secondary}>Cantidad</Text>
-            <Text style={styles.cell_title_secondary}>Color</Text>
-            <Text style={styles.cell_title_secondary}>Talla</Text>
-            <Text style={styles.cell_title_terciary}>Precio PvP ROOTS</Text>
-            <Text style={styles.cell_title_terciary}>DTO [%]</Text>
-            <Text style={styles.cell_title_terciary}>Precio Final Unidad</Text>
-            <Text style={styles.cell_title_terciary}>Precio Total</Text>
+            <Text style={styles.cell_title}>{t("invoice.table.item")}</Text>
+            <Text style={styles.cell_title_secondary}>{t("invoice.table.quantity")}</Text>
+            <Text style={styles.cell_title_secondary}>{t("invoice.table.color")}</Text>
+            <Text style={styles.cell_title_secondary}>{t("invoice.table.size")}</Text>
+            <Text style={styles.cell_title_terciary}>{t("invoice.table.pricePVP")}</Text>
+            <Text style={styles.cell_title_terciary}>{t("invoice.table.discount")} [%]</Text>
+            <Text style={styles.cell_title_terciary}>{t("invoice.table.priceUnit")}</Text>
+            <Text style={styles.cell_title_terciary}>{t("invoice.table.total")}</Text>
           </View>
 
           {Array.isArray(items) &&
@@ -181,33 +186,33 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
         {/* Totales No Presale */}
         {!preSale && (
           <View style={styles.total}>
-            <Text>TOTAL SIN IVA € {total_sin_iva.toFixed(2)}</Text>
-            <Text>IVA 21% € {iva.toFixed(2)}</Text>
-            <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
-            <Text style={styles.bold}>TOTAL € {total_fatura.toFixed(2)}</Text>
+            <Text>{t("invoice.total.totalNoTax")} € {total_sin_iva.toFixed(2)}</Text>
+            <Text>{t("invoice.total.iva")} 21% € {iva.toFixed(2)}</Text>
+            <Text>{t("invoice.total.recharge")} 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
+            <Text style={styles.bold}>{t("invoice.total.total")} € {total_fatura.toFixed(2)}</Text>
           </View>
         )}
         {/* Totales Presale */}
         {preSale && (
           <View style={styles.total}>
-            <Text>TOTAL SIN IVA € {total_sin_iva.toFixed(2)}</Text>
-            <Text>IVA 21% € {iva.toFixed(2)}</Text>
-            <Text>RECARGO DE EQUIVALENCIA 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
-            <Text style={styles.bold}>RESERVA 30% € {thirty_percent.toFixed(2)}</Text>
-            <Text style={styles.bold}>PENDIENTE DE PAGO € {remaining_balance.toFixed(2)}</Text>
+            <Text>{t("invoice.total.totalNoTax")} € {total_sin_iva.toFixed(2)}</Text>
+            <Text>{t("invoice.total.iva")} 21% € {iva.toFixed(2)}</Text>
+            <Text>{t("invoice.total.recharge")} 5,2% € {selectedCustomer.isRecharge ?? 0 ? total_recargo.toFixed(2) : '-'}</Text>
+            <Text style={styles.bold}>{t("invoice.total.prepay")} 30% € {thirty_percent.toFixed(2)}</Text>
+            <Text style={styles.bold}>{t("invoice.total.pending")} € {remaining_balance.toFixed(2)}</Text>
           </View>
         )}
 
         {/* Datos de facturación */}
         <View style={styles.remitente}>
-          <Text style={styles.bold}>FACTURADO POR:</Text>
+          <Text style={styles.bold}>{t("invoice.roots.info")}:</Text>
           <Text>Marcos Marra León</Text>
           <Text>DNI: {dni}</Text>
         </View>
         <View style={styles.remitente}>
-          <Text>Forma de pago: Transferencia</Text>
-          <Text>Nº de cuenta: {formatIBAN(iban)}</Text>
-          <Text>Remitente: Marcos Marra León</Text>
+          <Text>{t("invoice.roots.payment")}</Text>
+          <Text>{t("invoice.roots.iban")}: {formatIBAN(iban)}</Text>
+          <Text>{t("invoice.roots.address")}: Marcos Marra León</Text>
         </View>
       </Page>
   );

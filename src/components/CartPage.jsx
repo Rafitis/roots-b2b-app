@@ -4,9 +4,13 @@ import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotal } from "@hooks/useCart"
-
+import { useTranslations } from "@i18n/utils";
+import { useI18n } from "@hooks/useI18n";
 
 const CartPage = ({ DNI, IBAN}) => {
+  const { currentLang } = useI18n();
+  const t = useTranslations(currentLang);
+
   const [customerInfo, setCustomerInfo] = useState({
     fiscal_name: "",
     nif_cif: "",
@@ -39,9 +43,9 @@ const CartPage = ({ DNI, IBAN}) => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold py-10">Información del Cliente</h2>
+      <h2 className="text-xl font-bold py-10">{t('cart.infoTitle')}</h2>
       <ClientForm onStateChange={setCustomerInfo} />
-      <h2 className="text-xl font-bold py-10">Carrito de Compras</h2>
+      <h2 className="text-xl font-bold py-10">{t('table.title')}</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
       <div className="flex justify-between">
         <InvoiceDownload
@@ -51,7 +55,7 @@ const CartPage = ({ DNI, IBAN}) => {
           iban={IBAN}
           />
         <button className="btn btn-error btn-md" onClick={handleDeleteAll}>
-          Eliminar todo
+          {t('global.delete')}
         </button>
       </div>
     </div>
