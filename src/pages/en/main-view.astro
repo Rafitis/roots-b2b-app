@@ -1,0 +1,19 @@
+---
+export const prerender = false
+
+import Layout from "@layouts/Layout.astro";
+import {ProductsByTag} from "@components/ProductComponents.jsx";
+import { getNestedCatalog } from "@lib/stock_info.js";
+import { translateProducts } from "@lib/stock_info.js";
+
+const currentLocale = 'en';
+
+const nestedCatalog = await getNestedCatalog();
+const translatedCatalog = translateProducts(nestedCatalog, currentLocale);
+---
+
+<Layout title="Welcome to Roots Barefoot Budget Tool" currentLocale={currentLocale}>
+	<main class="flex container mx-auto w-full place-content-center mt-[500px]">
+        <ProductsByTag client:load catalog={translatedCatalog} />
+	</main>
+</Layout>
