@@ -9,5 +9,15 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   output: 'server',
   adapter: vercel(),
-  integrations: [react(), tailwind({applyBaseStyles: false})],
+  integrations: [
+    react(), 
+    tailwind({applyBaseStyles: false}),
+  ],
+  i18n: {
+    defaultLocale: 'es',
+    locales: ['es', 'en'],
+    routing: {
+      prefixDefaultLocale: false
+  }
+  }
 });
