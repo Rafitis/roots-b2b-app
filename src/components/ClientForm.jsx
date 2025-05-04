@@ -52,8 +52,8 @@ const CustomerForm = ({ onStateChange }) => {
       />
       <div className="flex gap-4">
       <label className="form-control w-1/4">
-        <div class="label">
-          <span class="label-text pl-4">{t('cart.countryPlaceholder')}:</span>
+        <div className="label">
+          <span className="label-text pl-4">{t('cart.countryPlaceholder')}:</span>
         </div>
         <select
           placeholder={t('cart.countryPlaceholder')}
