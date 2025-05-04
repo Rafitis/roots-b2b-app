@@ -1,6 +1,7 @@
 // useCart.js
 import { persistentAtom } from "@nanostores/persistent";
 import { computed } from 'nanostores'
+import { vatRates } from "@data/vatRates";
 // Definimos el store usando la clave "cart" y un array vacío como valor inicial.
 export const itemsStore = persistentAtom("cart", [], {
   encode: JSON.stringify,
@@ -151,10 +152,15 @@ export function removeAllFromCart() {
   return [];
 }
 
-export function calculateTotals({vatRate = 21, isRecharge = false}) {
+export function calculateTotals({countryCode, isRecharge = false}) {
   const cart = getCart();
+
+  // En Canarias no se aplica IVA
+  const isCanaryIsland = countryCode === "ES-CN";
+  const vatRate = vatRates[countryCode]?.vat || 21;
+
   const total_sin_iva = cart.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
-  const iva = total_sin_iva * (vatRate / 100);
+  const iva = isCanaryIsland ? 0 : total_sin_iva * (vatRate / 100);
   const total_recargo = isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0;
   const total_factura = total_sin_iva + iva + total_recargo;
   return {

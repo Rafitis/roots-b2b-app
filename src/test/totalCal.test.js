@@ -30,9 +30,9 @@ test("calcula el total del carrito con descuento", async () => {
         }
     ];
     const cart = getCart();
-    const vatRate = 21;
+    const countryCode = "ES";
     itemsStore.set([...cart, ...mockCart]);
-    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({countryCode}));
     assert.equal(total_sin_iva.toFixed(2), 219.02);
 });
 
@@ -65,9 +65,9 @@ test("calcula el total del carrito sin descuento", async () => {
         }
     ];
     const cart = getCart();
-    const vatRate = 21;
+    const countryCode = "ES";
     itemsStore.set([...cart, ...mockCart]);
-    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({countryCode}));
     assert.equal(total_sin_iva.toFixed(2), 24.98);
 });
 
@@ -101,9 +101,9 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
     ]
 
     const cart = getCart()
-    const vatRate = 21;
+    const countryCode = "ES";
     itemsStore.set([...cart, ...mockCart])
-    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({countryCode}));
     assert.equal(total_sin_iva.toFixed(2), 20.65)
     
     const updateItem = {
@@ -122,6 +122,6 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
     updateCartDiscount(updateItem.tag, updateItem.product_id)
     const updatedCart = getCart()
     assert.equal(updatedCart[1].quantity, 2) // El item con id 8595970195787_S (35-39)_ tiene una nueva cantidad de 2
-    const new_total = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    const new_total = await import("@hooks/useCart").then((module) => module.calculateTotals({countryCode}));
     assert.equal(new_total.total_sin_iva.toFixed(2), 24.95)
 })

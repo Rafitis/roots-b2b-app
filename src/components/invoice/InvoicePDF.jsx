@@ -141,7 +141,9 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
 
   // Calcula el total
   const vatRate = vatRates[selectedCustomer.country]?.vat || 21;
-  const { total_sin_iva, iva, total_recargo, total_factura } = calculateTotals({vatRate: vatRate, isRecharge: selectedCustomer.isRecharge});
+  const { total_sin_iva, iva, total_recargo, total_factura } = calculateTotals({
+                                                                    countryCode: selectedCustomer.country, 
+                                                                    isRecharge: selectedCustomer.isRecharge});
   
   // Si el cliente no es de España se tiene que calcular el IVA de cada pais y el envio es gratis cuando supero los 400€
   const isFreeShippingInternational = (total_sin_iva + iva > 400) && isInternationalShipping;
