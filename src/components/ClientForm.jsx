@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from "@hooks/useI18n";
+import { countries } from "@i18n/ui";
 
 const CustomerForm = ({ onStateChange }) => {
   const { currentLang } = useI18n();
@@ -11,6 +12,7 @@ const CustomerForm = ({ onStateChange }) => {
     fiscal_name: "",
     nif_cif: "",
     address: "",
+    country: "",
     isRecharge: false,
   });
 
@@ -48,6 +50,27 @@ const CustomerForm = ({ onStateChange }) => {
           setFormData({ ...formData, address: e.target.value })
         }
       />
+      <div className="flex gap-4">
+      <label className="form-control w-1/4">
+        <div class="label">
+          <span class="label-text pl-4">{t('cart.countryPlaceholder')}:</span>
+        </div>
+        <select
+          placeholder={t('cart.countryPlaceholder')}
+          className="select select-bordered"
+          value={formData.country}
+          onChange={(e) =>
+            setFormData({ ...formData, country: e.target.value })
+          }
+        >
+          {Object.entries(countries[currentLang]).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </label>
+      </div>
       <label className="flex items-center gap-2">
         <span>{t('cart.tax')}</span>
         <input

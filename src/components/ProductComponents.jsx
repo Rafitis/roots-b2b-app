@@ -209,7 +209,7 @@ export function ProductsByTag({ catalog }) {
   return (
     <div>
       {orderedTags.map(tag => (
-        <section key={tag} className="mb-20 animate-fade-in-up animate-duration-[1000ms]">
+        <section key={tag} className="mb-20 animate-fade-in-up duration-[1000ms]">
           <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>
           <div className="divider"></div>
           <Toaster position="bottom-right" reverseOrder={false} />

@@ -150,3 +150,17 @@ export function removeAllFromCart() {
   itemsStore.set([]);
   return [];
 }
+
+export function calculateTotals({vatRate = 21, isRecharge = false}) {
+  const cart = getCart();
+  const total_sin_iva = cart.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
+  const iva = total_sin_iva * (vatRate / 100);
+  const total_recargo = isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0;
+  const total_factura = total_sin_iva + iva + total_recargo;
+  return {
+    total_sin_iva,
+    iva,
+    total_recargo,
+    total_factura,
+  };
+}

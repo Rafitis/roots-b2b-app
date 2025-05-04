@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
-import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotal } from "@hooks/useCart"
+import SummaryCheckout from "@components/SummaryCheckout";
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 
@@ -15,6 +16,7 @@ const CartPage = ({ DNI, IBAN}) => {
     fiscal_name: "",
     nif_cif: "",
     address: "",
+    country: "",
     isRecharge: false,
   });
   const [cartItems, setCartItems] = useState(getCart());
@@ -37,16 +39,13 @@ const CartPage = ({ DNI, IBAN}) => {
     setCartItems(newCart);
   };
 
-  // Calcula el total
-  const total = calculateTotal();
-  
-
   return (
     <div>
       <h2 className="text-xl font-bold py-10">{t('cart.infoTitle')}</h2>
       <ClientForm onStateChange={setCustomerInfo} />
       <h2 className="text-xl font-bold py-10">{t('table.title')}</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
+      <SummaryCheckout customerInfo={customerInfo} />
       <div className="flex justify-between">
         <InvoiceDownload
           items={cartItems}

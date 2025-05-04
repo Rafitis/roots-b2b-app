@@ -17,7 +17,7 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
           </th>
           <th>{t('table.name')}</th>
           <th>{t('table.color')}</th>
-          <th className="text-center">{t('table.quantity')}</th>
+          <th>{t('table.quantity')}</th>
           <th>{t('table.priceUnit')}</th>
           <th>{t('table.discount')}</th>
           <th>{t('table.total')}</th>
@@ -64,9 +64,9 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
                   />
                 </td>
                 {/* <td className="text-center">{item.quantity}</td> */}
-                <td className="text-center">€{item.price}</td>
-                <td className="text-center">{item.discount}</td>
-                <td className="text-end">€ {total_price}</td>
+                <td>€{item.price}</td>
+                <td>{item.discount} %</td>
+                <td>€ {total_price}</td>
                 <th>
                   <button
                     className="btn btn-xs btn-outline btn-error"
@@ -85,7 +85,7 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
           <th></th>
           <th>{t('table.name')}</th>
           <th>{t('table.color')}</th>
-          <th className="text-center">{t('table.quantity')}</th>
+          <th>{t('table.quantity')}</th>
           <th>{t('table.priceUnit')}</th>
           <th>{t('table.discount')}</th>
           <th>{t('table.total')}</th>
