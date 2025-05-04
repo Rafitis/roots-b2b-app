@@ -30,9 +30,10 @@ test("calcula el total del carrito con descuento", async () => {
         }
     ];
     const cart = getCart();
+    const vatRate = 21;
     itemsStore.set([...cart, ...mockCart]);
-    const total = await import("@hooks/useCart").then((module) => module.calculateTotal());
-    assert.equal(total.toFixed(2), 219.02);
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    assert.equal(total_sin_iva.toFixed(2), 219.02);
 });
 
 test("calcula el total del carrito sin descuento", async () => {
@@ -64,9 +65,10 @@ test("calcula el total del carrito sin descuento", async () => {
         }
     ];
     const cart = getCart();
+    const vatRate = 21;
     itemsStore.set([...cart, ...mockCart]);
-    const total = await import("@hooks/useCart").then((module) => module.calculateTotal());
-    assert.equal(total.toFixed(2), 24.98);
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    assert.equal(total_sin_iva.toFixed(2), 24.98);
 });
 
 test("calcula el total del carrito despues de cambiar la cantidad de un producto", async () => {
@@ -99,9 +101,10 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
     ]
 
     const cart = getCart()
+    const vatRate = 21;
     itemsStore.set([...cart, ...mockCart])
-    const total = await import("@hooks/useCart").then((module) => module.calculateTotal())
-    assert.equal(total.toFixed(2), 20.65)
+    const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    assert.equal(total_sin_iva.toFixed(2), 20.65)
     
     const updateItem = {
         color: "",
@@ -119,6 +122,6 @@ test("calcula el total del carrito despues de cambiar la cantidad de un producto
     updateCartDiscount(updateItem.tag, updateItem.product_id)
     const updatedCart = getCart()
     assert.equal(updatedCart[1].quantity, 2) // El item con id 8595970195787_S (35-39)_ tiene una nueva cantidad de 2
-    const new_total = await import("@hooks/useCart").then((module) => module.calculateTotal())
-    assert.equal(new_total.toFixed(2), 24.95)
+    const new_total = await import("@hooks/useCart").then((module) => module.calculateTotals({vatRate}));
+    assert.equal(new_total.total_sin_iva.toFixed(2), 24.95)
 })
