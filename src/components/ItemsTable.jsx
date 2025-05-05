@@ -18,9 +18,9 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
           <th>{t('table.name')}</th>
           <th>{t('table.color')}</th>
           <th>{t('table.quantity')}</th>
-          <th>{t('table.priceUnit')}</th>
-          <th>{t('table.discount')}</th>
-          <th>{t('table.total')}</th>
+          <th className="text-center">{t('table.priceUnit')}</th>
+          <th className="text-center">{t('table.discount')}</th>
+          <th className="text-center">{t('table.total')}</th>
           <th></th>
         </tr>
       </thead>
@@ -54,7 +54,7 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
                     </div>
                   </div>
                 </td>
-                <td className="text-center">{item.color}</td>
+                <td>{item.color}</td>
                 <td>
                   <input
                     type="text"
@@ -64,9 +64,9 @@ export default function ItemsTable({items, onDelete, onUpdateQuantity}){
                   />
                 </td>
                 {/* <td className="text-center">{item.quantity}</td> */}
-                <td>€{item.price}</td>
-                <td>{item.discount} %</td>
-                <td>€ {total_price}</td>
+                <td className="text-center">€ {item.price}</td>
+                <td className="text-center">{item.discount} %</td>
+                <td className="text-center">€ {total_price}</td>
                 <th>
                   <button
                     className="btn btn-xs btn-outline btn-error"

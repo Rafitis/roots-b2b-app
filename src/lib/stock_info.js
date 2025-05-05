@@ -176,8 +176,8 @@ export async function getNestedCatalog() {
       link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
       status: published_at ? "active" : "inactive",
       variants: variants.map(variant => {
-        let v_color = variant.option1
         let v_talla = variant.option2
+        let v_color = variant.option1
         if (/\d/.test(variant.option1)){
           v_color = variant.option2
           v_talla = variant.option1
