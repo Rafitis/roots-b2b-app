@@ -141,7 +141,21 @@ export function translateProducts(products, currentLang) {
 
 export async function getNestedCatalog() {
   const products = await getAllProducts();  // de tu función previa
-  const filteredProducts = products.filter(p => !EXCLUDE_ID_PROUDUCTS.includes(p.id));
+  const filteredProducts = products.filter(p => {
+    // Excluir por ID
+    if (EXCLUDE_ID_PROUDUCTS.includes(p.id)) return false;
+
+    // Si no hay tags, lo dejamos pasar
+    if (!p.tags) return true;
+
+    // Spliteamos y normalizamos
+    const tagsArray = p.tags
+      .split(',')
+      .map(t => t.trim().toLowerCase());
+
+    // Excluir si incluye "bundle"
+    return !tagsArray.includes('bundle');
+  });
   const catalog = filteredProducts.map(product => {
     // Desestructuramos lo que nos interesa del producto
     const {
