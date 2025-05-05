@@ -12,7 +12,7 @@ const CustomerForm = ({ onStateChange }) => {
     fiscal_name: "",
     nif_cif: "",
     address: "",
-    country: "",
+    country: "ES",
     isRecharge: false,
   });
 
