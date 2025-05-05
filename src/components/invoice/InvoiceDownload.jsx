@@ -11,6 +11,7 @@ import InvoicePDF from '@components/invoice/InvoicePDF';
 import ErrorBoundary from '@components/errors/ErrorBoundary';
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from '@hooks/useI18n';
+import toast, { Toaster } from 'react-hot-toast'
 
 // Estilo mínimo para la página de fallback
 const fallbackStyles = StyleSheet.create({
@@ -104,32 +105,61 @@ const InvoiceDownload = ({
     return <span>{t('download.generating')}</span>;
   }
 
+  // 2. Campos obligatorios
+  const requiredFields = {
+    name: customerInfo.fiscal_name,
+    tin: customerInfo.nif_cif,
+    address: customerInfo.address,
+    // añade aquí los que necesites...
+  };
+
+  // 3. Detectar faltantes
+  const missing = Object.entries(requiredFields)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+    
+  const handleDownloadClick = (e) => {
+    if (missing.length > 0) {
+      e.preventDefault();
+      // Traduce (o formatea) cada campo que falte
+      const labels = missing.map(f => t(`fields.${f}`) || f);
+      toast.error(`Por favor completa: ${labels.join(', ')}`);
+    }
+  };
+
   return (
-    <ErrorBoundary>
-      <PDFDownloadLink
-        key={`${regularItems.length}-${preOrderItems.length}`}
-        document={
-          <CombinedInvoice
-            regularItems={regularItems}
-            preOrderItems={preOrderItems}
-            dni={dni}
-            iban={iban}
-            selectedCustomer={customerInfo}
-            title={title}
-          />
-        }
-        fileName={`${t('download.documentTitle')}.pdf`}
-        style={linkStyle}
-      >
-        {({ loading, error }) => {
-          if (error) {
-            console.error('Error generando factura combinada:', error);
-            return t('download.error');
+    <>
+      <Toaster position="bottom-center" reverseOrder={false} />
+      <ErrorBoundary>
+        <PDFDownloadLink
+          key={`${regularItems.length}-${preOrderItems.length}`}
+          document={
+            <CombinedInvoice
+              regularItems={regularItems}
+              preOrderItems={preOrderItems}
+              dni={dni}
+              iban={iban}
+              selectedCustomer={customerInfo}
+              title={title}
+            />
           }
-          return loading ? t('download.generating') : t('download.message');
-        }}
-      </PDFDownloadLink>
-    </ErrorBoundary>
+          fileName={`${t('download.documentTitle')}.pdf`}
+          style={linkStyle}
+          onClick={handleDownloadClick}  // intercepta el click
+        >
+          {({ loading, error }) => {
+              if (error) {
+                console.error('Error generando factura combinada:', error);
+                return t('download.error');
+              }
+              return loading
+                ? t('download.generating')
+                : t('download.message');
+            }}
+        </PDFDownloadLink>
+      </ErrorBoundary>
+    </>
   );
 };
 

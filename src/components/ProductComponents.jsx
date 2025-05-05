@@ -4,8 +4,6 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
 
-const notify = () => toast.success('Producto añadido al carrito');
-
 export function VariationOption({ variant, isSelected, onSelect, isPreOrder }) {
   const isOutOfStock = !isPreOrder && variant.stock_actual <= 0;
   const label = [variant.talla, variant.color].filter(Boolean).join(' / ');
@@ -33,6 +31,8 @@ export function VariationOption({ variant, isSelected, onSelect, isPreOrder }) {
 export function ProductCard({ product }) {
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
+
+  const notify = () => toast.success('Producto añadido al carrito');
 
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -208,11 +208,11 @@ export function ProductsByTag({ catalog }) {
 
   return (
     <div>
+      <Toaster position="bottom-center" reverseOrder={false} />
       {orderedTags.map(tag => (
-        <section key={tag} className="mb-20 animate-fade-in-up duration-[1000ms]">
+        <section key={tag} className="mb-20 animate-fade-in-up">
           <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>
           <div className="divider"></div>
-          <Toaster position="bottom-right" reverseOrder={false} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {grouped[tag].map(product => (
               <ProductCard key={product.ID_producto} product={product} />

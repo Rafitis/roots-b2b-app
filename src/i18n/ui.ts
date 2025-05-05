@@ -77,6 +77,10 @@ export const ui = {
         'cart.countryPlaceholder': 'País',
         'cart.regionPlaceholder': 'Región',
         'cart.tax': 'Recargo Equivalencia',
+
+        'fields.name': 'Nombre Fiscal',
+        'fields.tin': 'NIF o CIF',
+        'fields.address': 'Dirección',
         
         'table.title': 'Carrito de Compras',
         'table.name': 'Nombre',
@@ -140,11 +144,15 @@ export const ui = {
 
         'cart.infoTitle': 'Customer Information',
         'cart.namePlaceholder': 'Legal Name',
-        'cart.nifPlaceholder': 'NIF or CIF',
+        'cart.nifPlaceholder': 'TIN',
         'cart.addressPlaceholder': 'Address',
         'cart.countryPlaceholder': 'Country',
         'cart.regionPlaceholder': 'Region',
         'cart.tax': 'Recargo Equivalencia',
+
+        'fields.name': 'Legal Name',
+        'fields.tin': 'TIN',
+        'fields.address': 'Address',
         
         'table.title': 'Shopping Cart',
         'table.name': 'Name',
