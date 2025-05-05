@@ -161,14 +161,21 @@ export async function getNestedCatalog() {
       imagen: image ? image.src : null,
       link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
       status: published_at ? "active" : "inactive",
-      variants: variants.map(variant => ({
+      variants: variants.map(variant => {
+        let v_color = variant.option1
+        let v_talla = variant.option2
+        if (/\d/.test(variant.option1)){
+          v_color = variant.option2
+          v_talla = variant.option1
+        }
+        return ({
         ID_sku:       variant.id,
         SKU:          variant.sku,
-        talla:        variant.option1,
-        color:        variant.option2,
+        talla:        v_talla,
+        color:        v_color,
         precio:       getProductPrice(product),
         stock_actual: variant.inventory_quantity || 0
-      }))
+      })})
     };
   });
 
