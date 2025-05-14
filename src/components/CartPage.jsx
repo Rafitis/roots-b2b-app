@@ -53,7 +53,7 @@ const CartPage = ({ DNI, IBAN}) => {
           dni={DNI}
           iban={IBAN}
           />
-        <button className="btn btn-error btn-md" onClick={handleDeleteAll}>
+        <button className="btn btn-error btn-md hover:scale-105 text-primary" onClick={handleDeleteAll}>
           {t('global.delete')}
         </button>
       </div>

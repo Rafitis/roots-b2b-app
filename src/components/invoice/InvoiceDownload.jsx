@@ -88,9 +88,9 @@ const InvoiceDownload = ({
     textDecoration: 'none',
     padding: '12px',
     color: '#fff',
-    backgroundColor: '#007BFF',
-    borderRadius: '50px',
-    display: 'inline-block'
+    backgroundColor: '#121212',
+    borderRadius: '10px',
+    display: 'inline-block',
   };
 
   const [isReady, setIsReady] = useState(false);
@@ -110,7 +110,6 @@ const InvoiceDownload = ({
     name: customerInfo.fiscal_name,
     tin: customerInfo.nif_cif,
     address: customerInfo.address,
-    // añade aquí los que necesites...
   };
 
   // 3. Detectar faltantes
@@ -145,7 +144,7 @@ const InvoiceDownload = ({
             />
           }
           fileName={`${t('download.documentTitle')}.pdf`}
-          style={linkStyle}
+          className="btn btn-primary hover:scale-105 text-white"
           onClick={handleDownloadClick}  // intercepta el click
         >
           {({ loading, error }) => {

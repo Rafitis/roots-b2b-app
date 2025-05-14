@@ -14,8 +14,8 @@ export function VariationOption({ variant, isSelected, onSelect, isPreOrder }) {
       onClick={() => onSelect(variant)}
       className={[
         'relative px-3 py-1 border rounded-md m-1 transition overflow-hidden',
-        isSelected ? 'border-blue-500' : 'border-gray-200',
-        isOutOfStock ? 'text-gray-300' : 'hover:border-gray-700'
+        isSelected ? 'border-primary' : 'border-gray-200',
+        isOutOfStock ? 'text-gray-300 line-through' : 'hover:border-gray-700'
       ].join(' ')}
     >
       <span className="relative z-10">{label}{isOutOfStock}</span>
@@ -183,8 +183,8 @@ export function ProductCard({ product }) {
           className={[
             'btn btn-primary w-full py-2 rounded-md text-white text-lg transition',
             isOutOfStock
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-primary hover:bg-blue-700'
+              ? 'text-gray-300 border-gray-200 cursor-not-allowed'
+              : 'bg-primary hover:scale-105',
           ].join(' ')}
         >
           {t('product.add')}
