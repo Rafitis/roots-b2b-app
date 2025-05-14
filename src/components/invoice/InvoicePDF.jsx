@@ -349,7 +349,7 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
           <Text style={styles.bold}>{t("invoice.roots.info")}:</Text>
           <Text>ROOTS BAREFOOT S.L.</Text>
           <Text>CIF: {dni}</Text>
-          <Text>{t("invoice.roots.email")}:Email: contacto@rootsbarefoot.com </Text>
+          <Text>contacto@rootsbarefoot.com </Text>
         </View>
         <View style={styles.remitente}>
           <Text>{t("invoice.roots.payment")}</Text>
