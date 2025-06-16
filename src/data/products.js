@@ -60,4 +60,12 @@ export const SHOES_DATA = {
     "name": "Roots Livana Zebra",
     "price": 44.90,
   },
+  10620621160779: {
+    "name": "Roots Kalena Duna",
+    "price": 29.70,
+  },
+  10620622012747: {
+    "name": "Roots Kalena Lúa",
+    "price": 29.70,
+  },
 }
