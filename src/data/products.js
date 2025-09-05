@@ -70,10 +70,10 @@ export const SHOES_DATA = {
   },
   10766458749259: {
     "name": "Roots Mocaflip Nuit",
-    "price": 37.50,
+    "price": 45.37,
   },
   10766456783179: {
     "name": "Roots Mocaflip Terra",
-    "price": 37.50,
+    "price": 45.37,
   },
 }
