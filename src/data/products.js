@@ -68,4 +68,12 @@ export const SHOES_DATA = {
     "name": "Roots Kalena Lúa",
     "price": 29.70,
   },
+  10766458749259: {
+    "name": "Roots Mocaflip Nuit",
+    "price": 37.50,
+  },
+  10766456783179: {
+    "name": "Roots Mocaflip Terra",
+    "price": 37.50,
+  },
 }
