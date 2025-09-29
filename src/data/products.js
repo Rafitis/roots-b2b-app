@@ -76,4 +76,16 @@ export const SHOES_DATA = {
     "name": "Roots Mocaflip Terra",
     "price": 45.37,
   },
+  14807398351179: {
+    "name": "Roots Mocaflip Chocolate",
+    "price": 45.37,
+  },
+  10766460911947: {
+    "name": "Roots Nomad Arena",
+    "price": 36.30,
+  },
+  10766462550347: {
+    "name": "Roots Nomad Lava",
+    "price": 36.30,
+  },
 }
