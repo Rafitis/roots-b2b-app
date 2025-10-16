@@ -8,9 +8,9 @@ export default function SummaryCheckout({ customerInfo }) {
     const t = useTranslations(currentLang);
 
     // Si el cliente es de España el envio es gratis si supero los 200€ o si el cliente es de España y de Canarias el envio siempre es gratis
-    const isCanaryIsland = customerInfo.country === "ES-CN";
-    const isNationalShipping = (customerInfo.country === "ES" || isCanaryIsland);
-    const isInternationalShipping = customerInfo.country !== "ES" && !isCanaryIsland;
+    const isCanaryIslandOrCeutaOrMelilla = customerInfo.country === "ES-CN" || customerInfo.country === "ES-CE" || customerInfo.country === "ES-ML";
+    const isNationalShipping = (customerInfo.country === "ES" || isCanaryIslandOrCeutaOrMelilla);
+    const isInternationalShipping = customerInfo.country !== "ES" && !isCanaryIslandOrCeutaOrMelilla;
     
     
     // Calcula el total
@@ -19,7 +19,7 @@ export default function SummaryCheckout({ customerInfo }) {
     
     // Si el cliente no es de España se tiene que calcular el IVA de cada pais y el envio es gratis cuando supero los 400€
     const isFreeShippingInternational = (total_sin_iva + iva > 400) && isInternationalShipping;
-    const isFreeShipping = (total_sin_iva + iva > 200) || (isNationalShipping && isCanaryIsland);
+    const isFreeShipping = (total_sin_iva + iva > 200) || (isNationalShipping && isCanaryIslandOrCeutaOrMelilla);
 
     let total_factura_envio = total_factura + (isFreeShipping ? 0.00 : 15.00);
     if (isNationalShipping) {

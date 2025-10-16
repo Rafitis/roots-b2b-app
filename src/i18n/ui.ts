@@ -208,6 +208,8 @@ export const countries = {
     es: {
         'ES': 'España',
         'ES-CN': 'España - Islas Canarias',
+        'ES-CE': 'España - Ceuta',
+        'ES-ML': 'España - Melilla',
         'AT': 'Austria',
         'BE': 'Bélgica',
         'BG': 'Bulgaria',
@@ -238,6 +240,8 @@ export const countries = {
     en: {
         'ES': 'Spain',
         'ES-CN': 'Spain - Canary Islands',
+        'ES-CE': 'Spain - Ceuta',
+        'ES-ML': 'Spain - Melilla',
         'AT': 'Austria',
         'BE': 'Belgium',
         'BG': 'Bulgaria',

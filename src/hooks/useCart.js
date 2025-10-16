@@ -156,11 +156,11 @@ export function calculateTotals({countryCode, isRecharge = false}) {
   const cart = getCart();
 
   // En Canarias no se aplica IVA
-  const isCanaryIsland = countryCode === "ES-CN";
+  const isCanaryIslandOrCeutaOrMelilla = countryCode === "ES-CN" || countryCode === "ES-CE" || countryCode === "ES-ML";
   const vatRate = vatRates[countryCode]?.vat || 21;
 
   const total_sin_iva = cart.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
-  const iva = isCanaryIsland ? 0 : total_sin_iva * (vatRate / 100);
+  const iva = isCanaryIslandOrCeutaOrMelilla ? 0 : total_sin_iva * (vatRate / 100);
   const total_recargo = isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0;
   const total_factura = total_sin_iva + iva + total_recargo;
   return {

@@ -135,9 +135,9 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
   const t = useTranslations(currentLang);
 
   // Si el cliente es de España el envio es gratis si supero los 200€ o si el cliente es de España y de Canarias el envio siempre es gratis
-  const isCanaryIsland = selectedCustomer.country === "ES-CN";
-  const isNationalShipping = (selectedCustomer.country === "ES" || isCanaryIsland);
-  const isInternationalShipping = selectedCustomer.country !== "ES" && !isCanaryIsland;
+  const isCanaryIslandOrCeutaOrMelilla = selectedCustomer.country === "ES-CN" || selectedCustomer.country === "ES-CE" || selectedCustomer.country === "ES-ML";
+  const isNationalShipping = (selectedCustomer.country === "ES" || isCanaryIslandOrCeutaOrMelilla);
+  const isInternationalShipping = selectedCustomer.country !== "ES" && !isCanaryIslandOrCeutaOrMelilla;
 
   // Calcula el total
   const vatRate = vatRates[selectedCustomer.country]?.vat || 21;
@@ -147,7 +147,7 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
   
   // Si el cliente no es de España se tiene que calcular el IVA de cada pais y el envio es gratis cuando supero los 400€
   const isFreeShippingInternational = (total_sin_iva + iva > 400) && isInternationalShipping;
-  const isFreeShipping = (total_sin_iva + iva > 200) || (isNationalShipping && isCanaryIsland);
+  const isFreeShipping = (total_sin_iva + iva > 200) || (isNationalShipping && isCanaryIslandOrCeutaOrMelilla);
   
   let total_factura_envio = total_factura + (isFreeShipping ? 0.00 : 15.00);
   if (isNationalShipping) {
