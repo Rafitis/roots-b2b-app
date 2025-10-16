@@ -18,7 +18,7 @@
     "@fontsource-variable/figtree": "^5.1.2",
     "@lucide/astro": "^0.501.0",
     "@midudev/tailwind-animations": "^0.2.0",
-    "@nanostores/persistent": "^0.10.2",
+    "@nanostores/persistent": "^1.1.0",
     "@nanostores/react": "^1.0.0",
     "@react-pdf/renderer": "^4.1.6",
     "@supabase/supabase-js": "^2.48.1",
