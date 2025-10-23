@@ -4,8 +4,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
 
-export function VariationOption({ variant, isSelected, onSelect, isPreOrder }) {
-  const isOutOfStock = !isPreOrder && variant.stock_actual <= 0;
+export function VariationOption({ variant, isSelected, onSelect, isPreOrder, isReservaB2B }) {
+  const isOutOfStock = !isPreOrder && !isReservaB2B && variant.stock_actual <= 0;
   const label = [variant.talla, variant.color].filter(Boolean).join(' / ');
 
   return (
@@ -59,6 +59,7 @@ export function ProductCard({ product }) {
   const [unitPrice, setUnitPrice] = useState(selectedVariant?.precio ?? 0);
 
   const isPreOrder = product.tags.some(tag => tag.toLowerCase() === 'preventa');
+  const isReservaB2B = product.tags.some(tag => tag.toLowerCase() === 'reserva b2b');
 
   useEffect(() => {
     if (!selectedVariant) return;
@@ -72,7 +73,7 @@ export function ProductCard({ product }) {
   const handleQuantityChange = e => {
     let val = parseInt(e.target.value, 10) || 1;
     if (val < 1) val = 1;
-    if (!isPreOrder && selectedVariant && val > selectedVariant.stock_actual) {
+    if (!isPreOrder && !isReservaB2B && selectedVariant && val > selectedVariant.stock_actual) {
       val = selectedVariant.stock_actual;
     }
     setQuantity(val);
@@ -91,7 +92,7 @@ export function ProductCard({ product }) {
     notify();
   };
 
-  const isOutOfStock = !selectedVariant || (!isPreOrder && selectedVariant.stock_actual < 1);
+  const isOutOfStock = !selectedVariant || (!isPreOrder && !isReservaB2B && selectedVariant.stock_actual < 1);
 
   return (
     <div
@@ -141,6 +142,7 @@ export function ProductCard({ product }) {
                   isSelected={selectedVariant?.ID_sku === variant.ID_sku}
                   onSelect={setSelectedVariant}
                   isPreOrder={isPreOrder}
+                  isReservaB2B={isReservaB2B}
                 />
               ))}
             </div>
@@ -163,7 +165,7 @@ export function ProductCard({ product }) {
             <input
               type="number"
               min="1"
-              {...(!isPreOrder && selectedVariant
+              {...(!isPreOrder && !isReservaB2B && selectedVariant
                 ? { max: selectedVariant.stock_actual }
                 : {})}
               value={quantity}
