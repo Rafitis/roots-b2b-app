@@ -96,6 +96,7 @@ export const ui = {
         'download.error': 'Error generando factura',
         'download.documentTitle': 'Factura',
         'download.noItemsMessage': 'No hay artículos para generar factura.',
+        'download.success': 'Factura guardada correctamente:',
 
         'global.delete': 'Eliminar Todo',
         
@@ -168,6 +169,7 @@ export const ui = {
         'download.error': 'Error generating invoice',
         'download.documentTitle': 'Invoice',
         'download.noItemsMessage': 'No items to generate invoice.',
+        'download.success': 'Invoice saved successfully:',
 
         'global.delete': 'Delete All',
 

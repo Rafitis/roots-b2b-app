@@ -4,7 +4,7 @@ import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import SummaryCheckout from "@components/SummaryCheckout";
-import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart } from "@hooks/useCart"
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotals } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 
@@ -39,6 +39,18 @@ const CartPage = ({ DNI, IBAN}) => {
     setCartItems(newCart);
   };
 
+  // Calcular totales para pasar a InvoiceDownload
+  const { total_sin_iva, iva, total_recargo } = calculateTotals({
+    countryCode: customerInfo.country,
+    isRecharge: customerInfo.isRecharge
+  });
+
+  const totals = {
+    total_sin_iva,
+    iva,
+    recargo: total_recargo
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold py-10">{t('cart.infoTitle')}</h2>
@@ -52,6 +64,7 @@ const CartPage = ({ DNI, IBAN}) => {
           customerInfo={customerInfo}
           dni={DNI}
           iban={IBAN}
+          totals={totals}
           />
         <button className="btn btn-error btn-md hover:scale-105 text-primary" onClick={handleDeleteAll}>
           {t('global.delete')}

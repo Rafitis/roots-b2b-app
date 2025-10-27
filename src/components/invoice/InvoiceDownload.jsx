@@ -5,7 +5,8 @@ import {
   Document,
   Page,
   Text,
-  StyleSheet
+  StyleSheet,
+  pdf
 } from '@react-pdf/renderer';
 import InvoicePDF from '@components/invoice/InvoicePDF';
 import ErrorBoundary from '@components/errors/ErrorBoundary';
@@ -74,7 +75,8 @@ const InvoiceDownload = ({
   dni,
   iban,
   customerInfo,
-  title
+  title,
+  totals = {} // Se espera: { total_sin_iva, iva, recargo, total }
 }) => {
 
   const { currentLang } = useI18n();
@@ -94,6 +96,7 @@ const InvoiceDownload = ({
   };
 
   const [isReady, setIsReady] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // Dar tiempo para que react-pdf se inicialice
@@ -117,13 +120,106 @@ const InvoiceDownload = ({
     .filter(([_, value]) => !value)
     .map(([key]) => key);
 
-    
-  const handleDownloadClick = (e) => {
+  /**
+   * Genera el PDF en base64 y lo envía al servidor para guardarlo
+   */
+  const saveInvoiceToServer = async (pdfBlob) => {
+    try {
+      setIsSaving(true);
+
+      // Convertir blob a base64
+      const reader = new FileReader();
+      reader.readAsDataURL(pdfBlob);
+
+      reader.onload = async () => {
+        const pdfBase64 = reader.result;
+
+        // Preparar datos de factura
+        const invoiceData = {
+          company_name: customerInfo.fiscal_name,
+          nif_cif: customerInfo.nif_cif,
+          address: customerInfo.address,
+          country: customerInfo.country || 'ES',
+          items_count: items.length,
+          total_amount_eur: totals.total_sin_iva || 0,
+          vat_amount: totals.iva || 0,
+          surcharge_applied: !!totals.recargo,
+          surcharge_amount: totals.recargo || 0,
+          is_preorder: preOrderItems.length > 0
+        };
+
+        // Enviar al servidor
+        try {
+          const response = await fetch('/api/invoices/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              invoice_data: invoiceData,
+              pdf_base64: pdfBase64
+            })
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            toast.success(`${t('download.success')} ${result.invoice_number}`);
+            console.log('Factura guardada:', result);
+          } else {
+            // El PDF se descargó pero no se guardó en servidor
+            toast.error(result.error || 'Error al guardar en servidor');
+            console.error('Error saving invoice:', result);
+          }
+        } catch (error) {
+          console.error('Error calling save endpoint:', error);
+          toast.error('Error al guardar factura en servidor');
+        } finally {
+          setIsSaving(false);
+        }
+      };
+
+      reader.onerror = () => {
+        console.error('Error reading PDF blob');
+        toast.error('Error al procesar PDF');
+        setIsSaving(false);
+      };
+    } catch (error) {
+      console.error('Error in saveInvoiceToServer:', error);
+      toast.error('Error inesperado');
+      setIsSaving(false);
+    }
+  };
+
+  const handleDownloadClick = async (e) => {
     if (missing.length > 0) {
       e.preventDefault();
       // Traduce (o formatea) cada campo que falte
       const labels = missing.map(f => t(`fields.${f}`) || f);
       toast.error(`Por favor completa: ${labels.join(', ')}`);
+      return;
+    }
+
+    // Generar PDF y guardarlo en servidor
+    if (!isSaving) {
+      try {
+        const pdfDocument = (
+          <CombinedInvoice
+            regularItems={regularItems}
+            preOrderItems={preOrderItems}
+            dni={dni}
+            iban={iban}
+            selectedCustomer={customerInfo}
+            title={title}
+          />
+        );
+
+        const pdfBlob = await pdf(pdfDocument).toBlob();
+        await saveInvoiceToServer(pdfBlob);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        toast.error('Error al generar PDF');
+      }
     }
   };
 
