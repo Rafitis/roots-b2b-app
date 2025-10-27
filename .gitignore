@@ -25,5 +25,7 @@ pnpm-debug.log*
 .idea/
 .vscode/
 
-# AI
+# Documentation
 CLAUDE.md
+PLAN_*.md
+db/
