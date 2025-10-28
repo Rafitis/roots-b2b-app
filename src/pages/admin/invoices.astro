@@ -1,0 +1,55 @@
+---
+/**
+ * Admin Dashboard - Gestión de Facturas
+ * Ruta: /admin/invoices
+ *
+ * Protegida por middleware:
+ * - Solo usuarios autenticados
+ * - Solo usuarios con is_admin=TRUE
+ *
+ * Componentes:
+ * - InvoiceFilters: Panel de filtros
+ * - InvoiceTable: Tabla de facturas con paginación
+ * - BulkDownload: Selector para descargar múltiples
+ */
+
+import Layout from '@layouts/Layout.astro';
+import AdminInvoices from '@components/admin/AdminInvoices';
+
+const title = 'Dashboard - Gestión de Facturas';
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+          Gestión de Facturas
+        </h1>
+        <p class="mt-2 text-gray-600">
+          Visualiza, filtra y descarga todas tus facturas
+        </p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Component React para el dashboard -->
+      <AdminInvoices client:load />
+    </main>
+
+    <!-- Footer -->
+    <div class="bg-white border-t border-gray-200 mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-gray-500">
+        <p>Dashboard de facturación - Roots Barefoot B2B</p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  :global(body) {
+    @apply bg-gray-50;
+  }
+</style>

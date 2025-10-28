@@ -1,0 +1,268 @@
+/**
+ * AdminInvoices - Componente principal del dashboard
+ *
+ * Gestiona:
+ * - Estado de filtros
+ * - Carga de datos
+ * - Paginación
+ * - Descarga de facturas
+ */
+
+import React, { useState, useEffect } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import InvoiceFilters from './InvoiceFilters';
+import InvoiceTable from './InvoiceTable';
+
+export default function AdminInvoices() {
+  // Estado de datos
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    per_page: 50,
+    total_count: 0,
+    total_pages: 0
+  });
+
+  // Estado de filtros
+  const [filters, setFilters] = useState({
+    date_from: '',
+    date_to: '',
+    nif: '',
+    company: '',
+    status: ''
+  });
+
+  // Estado de selección (para bulk download)
+  const [selectedInvoices, setSelectedInvoices] = useState(new Set());
+
+  /**
+   * Cargar facturas desde el endpoint
+   */
+  const loadInvoices = async (pageNum = 1) => {
+    setLoading(true);
+    try {
+      // Construir query string
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', pageNum);
+      queryParams.append('per_page', pagination.per_page);
+
+      if (filters.date_from) queryParams.append('date_from', filters.date_from);
+      if (filters.date_to) queryParams.append('date_to', filters.date_to);
+      if (filters.nif) queryParams.append('nif', filters.nif);
+      if (filters.company) queryParams.append('company', filters.company);
+      if (filters.status) queryParams.append('status', filters.status);
+
+      // Llamar endpoint
+      const response = await fetch(`/api/invoices/list?${queryParams}`);
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Error al cargar facturas');
+        return;
+      }
+
+      setInvoices(data.invoices);
+      setPagination(data.pagination);
+      setSelectedInvoices(new Set()); // Limpiar selección al cambiar página
+
+    } catch (error) {
+      console.error('Error loading invoices:', error);
+      toast.error('Error al cargar facturas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar facturas al montar el componente (primera vez)
+  useEffect(() => {
+    loadInvoices(1);
+  }, []);
+
+  // Cargar facturas cuando cambian los filtros (volver a página 1)
+  useEffect(() => {
+    if (Object.values(filters).some(v => v)) {
+      loadInvoices(1); // Solo recargar si hay filtros activos
+    }
+  }, [filters]);
+
+  /**
+   * Aplicar filtros
+   */
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  /**
+   * Limpiar filtros
+   */
+  const handleClearFilters = () => {
+    setFilters({
+      date_from: '',
+      date_to: '',
+      nif: '',
+      company: '',
+      status: ''
+    });
+  };
+
+  /**
+   * Cambiar página
+   */
+  const handlePageChange = (newPage) => {
+    loadInvoices(newPage);
+  };
+
+  /**
+   * Seleccionar/deseleccionar una factura
+   */
+  const handleSelectInvoice = (invoiceId) => {
+    const newSelected = new Set(selectedInvoices);
+    if (newSelected.has(invoiceId)) {
+      newSelected.delete(invoiceId);
+    } else {
+      newSelected.add(invoiceId);
+    }
+    setSelectedInvoices(newSelected);
+  };
+
+  /**
+   * Seleccionar todas las facturas de la página
+   */
+  const handleSelectAll = () => {
+    if (selectedInvoices.size === invoices.length) {
+      // Si todas están seleccionadas, deseleccionar todas
+      setSelectedInvoices(new Set());
+    } else {
+      // Si no todas están seleccionadas, seleccionar todas
+      const newSelected = new Set(invoices.map(inv => inv.id));
+      setSelectedInvoices(newSelected);
+    }
+  };
+
+  /**
+   * Descargar facturas seleccionadas
+   */
+  const handleBulkDownload = async () => {
+    if (selectedInvoices.size === 0) {
+      toast.error('Selecciona al menos una factura');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Llamar endpoint de bulk download
+      const response = await fetch('/api/invoices/bulk-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoice_ids: Array.from(selectedInvoices)
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Error al descargar facturas');
+        return;
+      }
+
+      // TODO: Cuando se implemente ZIP, hacer descarga aquí
+      // Por ahora es un placeholder
+      const data = await response.json();
+      toast.success(`${data.files_ready} facturas listas para descargar`);
+
+    } catch (error) {
+      console.error('Error in bulk download:', error);
+      toast.error('Error al descargar facturas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Descargar una factura individual
+   */
+  const handleDownloadInvoice = async (invoiceId, invoiceNumber, companyName) => {
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/pdf`);
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Error al descargar PDF');
+        return;
+      }
+
+      // Obtener nombre del archivo del header Content-Disposition
+      const contentDisposition = response.headers.get('content-disposition');
+      let fileName = `FACTURA_${invoiceNumber}_${companyName}.pdf`;
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
+        if (fileNameMatch) fileName = fileNameMatch[1];
+      }
+
+      // Crear blob y descargar
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success(`Descargando: ${fileName}`);
+
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Error al descargar factura');
+    }
+  };
+
+  return (
+    <>
+      <Toaster position="bottom-center" reverseOrder={false} />
+
+      <div className="space-y-8">
+        {/* Filtros */}
+        <InvoiceFilters
+          filters={filters}
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+          disabled={loading}
+        />
+
+        {/* Tabla de facturas */}
+        <InvoiceTable
+          invoices={invoices}
+          loading={loading}
+          pagination={pagination}
+          selectedInvoices={selectedInvoices}
+          onSelectInvoice={handleSelectInvoice}
+          onSelectAll={handleSelectAll}
+          onPageChange={handlePageChange}
+          onDownload={handleDownloadInvoice}
+        />
+
+        {/* Acciones de bulk */}
+        {selectedInvoices.size > 0 && (
+          <div className="sticky bottom-4 bg-white rounded-lg shadow-lg p-4 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-700">
+                {selectedInvoices.size} factura(s) seleccionada(s)
+              </p>
+              <button
+                onClick={handleBulkDownload}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+              >
+                {loading ? '⏳ Descargando...' : `📥 Descargar ${selectedInvoices.size}`}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
