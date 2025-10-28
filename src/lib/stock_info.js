@@ -140,58 +140,72 @@ export function translateProducts(products, currentLang) {
 }
 
 export async function getNestedCatalog() {
-  const products = await getAllProducts();  // de tu función previa
-  const filteredProducts = products.filter(p => {
-    // Excluir por ID
-    if (EXCLUDE_ID_PROUDUCTS.includes(p.id)) return false;
+  try {
+    const products = await getAllProducts();  // de tu función previa
 
-    // Si no hay tags, lo dejamos pasar
-    if (!p.tags) return true;
+    // Validar que tenemos un array
+    if (!Array.isArray(products)) {
+      console.error('Error: getAllProducts() no retornó un array', products);
+      return {};
+    }
 
-    // Spliteamos y normalizamos
-    const tagsArray = p.tags
-      .split(',')
-      .map(t => t.trim().toLowerCase());
+    const filteredProducts = products.filter(p => {
+      // Excluir por ID
+      if (EXCLUDE_ID_PROUDUCTS.includes(p.id)) return false;
 
-    // Excluir si incluye "bundle"
-    return !tagsArray.includes('bundle');
-  });
-  const catalog = filteredProducts.map(product => {
-    // Desestructuramos lo que nos interesa del producto
-    const {
-      id: ID_producto,
-      title: nombre,
-      tags,
-      handle,
-      image,
-      published_at,
-      variants
-    } = product;
-  
-    return {
-      ID_producto,
-      nombre,
-      tags: tags ? tags.split(',').map(t => t.trim()) : [],
-      imagen: image ? image.src : null,
-      link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
-      status: published_at ? "active" : "inactive",
-      variants: variants.map(variant => {
-        let v_talla = variant.option2
-        let v_color = variant.option1
-        if (/\d/.test(variant.option1)){
-          v_color = variant.option2
-          v_talla = variant.option1
-        }
-        return ({
-        ID_sku:       variant.id,
-        SKU:          variant.sku,
-        talla:        v_talla,
-        color:        v_color,
-        precio:       getProductPrice(product),
-        stock_actual: variant.inventory_quantity || 0
-      })})
-    };
-  });
+      // Si no hay tags, lo dejamos pasar
+      if (!p.tags) return true;
 
-  return catalog;
+      // Spliteamos y normalizamos
+      const tagsArray = p.tags
+        .split(',')
+        .map(t => t.trim().toLowerCase());
+
+      // Excluir si incluye "bundle"
+      return !tagsArray.includes('bundle');
+    });
+
+    const catalog = filteredProducts.map(product => {
+      // Desestructuramos lo que nos interesa del producto
+      const {
+        id: ID_producto,
+        title: nombre,
+        tags,
+        handle,
+        image,
+        published_at,
+        variants
+      } = product;
+
+      return {
+        ID_producto,
+        nombre,
+        tags: tags ? tags.split(',').map(t => t.trim()) : [],
+        imagen: image ? image.src : null,
+        link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
+        status: published_at ? "active" : "inactive",
+        variants: variants.map(variant => {
+          let v_talla = variant.option2
+          let v_color = variant.option1
+          if (/\d/.test(variant.option1)){
+            v_color = variant.option2
+            v_talla = variant.option1
+          }
+          return ({
+          ID_sku:       variant.id,
+          SKU:          variant.sku,
+          talla:        v_talla,
+          color:        v_color,
+          precio:       getProductPrice(product),
+          stock_actual: variant.inventory_quantity || 0
+        })})
+      };
+    });
+
+    return catalog;
+  } catch (error) {
+    console.error('Error en getNestedCatalog():', error);
+    // Retornar objeto vacío en lugar de fallar
+    return {};
+  }
 }

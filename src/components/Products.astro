@@ -2,23 +2,32 @@
 // @ts-nocheck
 import CardProduct from "@components/CardProduct.astro";
 const { products } = Astro.props;
+
+// Validar que products sea un objeto válido
+const isValidProducts = products && typeof products === 'object' && !Array.isArray(products);
+const entries = isValidProducts ? Object.entries(products) : [];
 ---
+
 <section>
-    {Object.entries(products).map(([tag, productList]) => (
+  {entries && entries.length > 0 ? (
+    entries.map(([tag, productList]) => (
       <div class="flex flex-col m-auto md:place-content-center p-4 gap-4">
         {/* Encabezado con el tag */}
         <h2 class="text-center md:text-left text-2xl font-bold md:mb-5">{tag}</h2>
         <div class="divider"></div>
         {/* Lista de productos que pertenecen a este tag */}
         <ul class="flex flex-wrap justify-center gap-4 md:gap-4">
-          {productList.map((product) => (
-            <li
-              class="flex md:gap-4"
-            >
+          {Array.isArray(productList) && productList.map((product) => (
+            <li class="flex md:gap-4">
               <CardProduct product={product} tag={tag} />
             </li>
           ))}
         </ul>
       </div>
-    ))}
-  </section>
+    ))
+  ) : (
+    <div class="text-center p-8">
+      <p class="text-gray-500">No products available</p>
+    </div>
+  )}
+</section>
