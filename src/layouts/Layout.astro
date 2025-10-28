@@ -24,17 +24,17 @@ const pathname = Astro.url.pathname; // '/cart', '/products', etc.
   <body class="min-h-screen flex flex-col">
     <!-- Logo animado -->
     <body class="min-h-screen flex flex-col">
-		{(pathname !== '/carrito' && pathname !== '/en/carrito') && (
+		{(pathname !== '/carrito' && pathname !== '/en/carrito' && !pathname.startsWith('/admin') && !pathname.startsWith('/en/admin')) && (
 		  <AnimatedLogo client:only />
 		  <Header showLogo={false} client:only />
 		)}
-		
-		{(pathname === '/carrito' || pathname === '/en/carrito') && (
+
+		{(pathname === '/carrito' || pathname === '/en/carrito' || pathname.startsWith('/admin') || pathname.startsWith('/en/admin')) && (
 		<Header showLogo={true} client:only />
 		)}
 
-    <!-- Contenido principal -->
-    <main class="flex-1 p-2">
+    <!-- Contenido principal con margen top para el header fijo -->
+    <main class="flex-1 p-2 pt-[100px]">
       <slot />
     </main>	
 

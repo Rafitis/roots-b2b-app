@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, LogOut } from 'lucide-react';
+import { ShoppingCart, LogOut, BarChart3 } from 'lucide-react';
 import { useStore } from '@nanostores/react'
 import { cartCountStore } from '@hooks/useCart'
 
@@ -18,11 +18,39 @@ export default function Header({ showLogo }) {
 
   const cartCount = useStore(cartCountStore)
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        // Check cache first
+        const cached = sessionStorage.getItem('isAdmin');
+        if (cached !== null) {
+          setIsAdmin(cached === 'true');
+          return;
+        }
+
+        // If not cached, fetch from API
+        const response = await fetch('/api/user/is-admin');
+        const data = await response.json();
+        const adminStatus = data.isAdmin || false;
+
+        // Cache for this session
+        sessionStorage.setItem('isAdmin', String(adminStatus));
+        setIsAdmin(adminStatus);
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
   }, []);
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -53,6 +81,16 @@ export default function Header({ showLogo }) {
 
       {/* Navigation Links */}
       <nav className="flex items-center space-x-6">
+          {isAdmin && (
+          <div className="tooltip" data-tip="Admin Dashboard">
+            <a
+              href={currentLang === 'en' ? '/en/admin/invoices' : '/admin/invoices'}
+              className="flex items-center text-gray-700 hover:text-gray-900"
+            >
+              <BarChart3 className="h-6 w-6" />
+            </a>
+          </div>
+        )}
         <a href={currentLang === 'en' ? '/en/main-view' : '/main-view'} className="text-gray-700 hover:text-gray-900 font-medium">
           {t('nav.products')}
         </a>
@@ -69,7 +107,7 @@ export default function Header({ showLogo }) {
         </div>
 
         <LanguagePicker />
-        
+
         <div className="tooltip" data-tip={t('nav.logout')}>
           <button
             onClick={handleLogout}
