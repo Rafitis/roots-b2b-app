@@ -4,7 +4,7 @@ import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import SummaryCheckout from "@components/SummaryCheckout";
-import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotals, clearCart, addToCartMultiple, itemsStore } from "@hooks/useCart"
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotals, addToCartMultiple, itemsStore } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 import toast, { Toaster } from 'react-hot-toast'
@@ -95,7 +95,7 @@ const CartPage = ({ DNI, IBAN}) => {
           localStorage.setItem('editingInvoiceLoaded', 'true');
 
           // Limpiar carrito actual
-          clearCart();
+          removeAllFromCart();
           console.log('🗑️ Carrito limpiado');
 
           // Cargar items de la factura
@@ -171,7 +171,7 @@ const CartPage = ({ DNI, IBAN}) => {
       localStorage.removeItem('editingInvoiceId');
 
       // Limpiar carrito
-      clearCart();
+      removeAllFromCart();
 
       // Resetear estados
       setIsEditingMode(false);

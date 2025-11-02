@@ -152,6 +152,30 @@ export function removeAllFromCart() {
   return [];
 }
 
+/**
+ * Añadir múltiples items al carrito de una vez
+ * Usado cuando se carga un carrito desde una factura para edición
+ * Espera items con estructura: { id, name, color, size, quantity, price, discount, product_img, isPreOrder, product_id, tag }
+ */
+export function addToCartMultiple(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  // Limpiar carrito primero
+  itemsStore.set([]);
+
+  // Agregar todos los items
+  itemsStore.set(items);
+
+  // Recalcular descuentos por product_id
+  const uniqueProductIds = [...new Set(items.map(item => item.product_id))];
+  uniqueProductIds.forEach(product_id => {
+    const item = items.find(i => i.product_id === product_id);
+    if (item) {
+      updateCartDiscount(item.tag, product_id);
+    }
+  });
+}
+
 export function calculateTotals({countryCode, isRecharge = false}) {
   const cart = getCart();
 
