@@ -18,13 +18,23 @@
     const [unitPrice, setUnitPrice] = useState(product?.Precio)
 
     function handleAddElementToCart() {
-      
+
       if (quantity === 0) return
-      
-      addToCart({tag: tag, product: product, quantity: quantity, size: sizeSelected, color: colorSelected})
-      
+
+      // Encontrar el variant que coincida con talla y color seleccionados
+      const variant = product.variants?.find(v =>
+        v.talla === sizeSelected && v.color === colorSelected
+      );
+
+      if (!variant) {
+        console.error('Variant no encontrado para talla:', sizeSelected, 'color:', colorSelected);
+        return;
+      }
+
+      addToCart({tag: tag, product: product, quantity: quantity, variant: variant})
+
       const quantityInput = document.getElementById("cantidad-producto" + product.id)
-      quantityInput.value = ""
+      if (quantityInput) quantityInput.value = ""
       setQuantity(1)
       setColorSelected(initialColor)
       setSizeSelected(initialSize)
