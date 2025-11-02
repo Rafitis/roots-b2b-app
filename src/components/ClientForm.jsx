@@ -1,25 +1,42 @@
 // src/components/CustomerForm.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from "@hooks/useI18n";
 import { countries } from "@i18n/ui";
 
-const CustomerForm = ({ onStateChange }) => {
+const CustomerForm = ({ onStateChange, initialData }) => {
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
 
   const [formData, setFormData] = useState({
-    fiscal_name: "",
-    nif_cif: "",
-    address: "",
-    country: "ES",
-    isRecharge: false,
+    fiscal_name: initialData?.fiscal_name || "",
+    nif_cif: initialData?.nif_cif || "",
+    address: initialData?.address || "",
+    country: initialData?.country || "ES",
+    isRecharge: initialData?.isRecharge || false,
+    shopify_order_number: initialData?.shopify_order_number || "",
   });
 
-  // Cada vez que el formulario cambie, se notifica al padre.
+  // Cargar datos iniciales solo cuando initialData tenga valores
+  useEffect(() => {
+    if (initialData && (initialData.fiscal_name || initialData.nif_cif || initialData.address)) {
+      setFormData({
+        fiscal_name: initialData.fiscal_name || "",
+        nif_cif: initialData.nif_cif || "",
+        address: initialData.address || "",
+        country: initialData.country || "ES",
+        isRecharge: initialData.isRecharge || false,
+        shopify_order_number: initialData.shopify_order_number || "",
+      });
+    }
+  }, [initialData?.fiscal_name, initialData?.nif_cif, initialData?.address, initialData?.country, initialData?.shopify_order_number]);
+
+  // Cada vez que el formulario cambie, se notifica al padre
+  // Nota: NO incluir onStateChange en dependencias para evitar loops
   useEffect(() => {
     onStateChange(formData);
-  }, [formData, onStateChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]);
 
   return (
     <div className="w-full flex flex-col justify-center gap-4 p-4 border rounded">
@@ -82,6 +99,21 @@ const CustomerForm = ({ onStateChange }) => {
           }
         />
       </label>
+
+      {/* Mostrar número de Shopify si existe */}
+      {formData.shopify_order_number && (
+        <div className="bg-blue-50 border border-blue-200 rounded p-3">
+          <div className="text-sm text-blue-700 font-semibold mb-1">
+            Número de Shopify (Original):
+          </div>
+          <div className="text-base text-blue-900 font-mono">
+            {formData.shopify_order_number}
+          </div>
+          <div className="text-xs text-blue-600 mt-2">
+            Este número se preservará en la nueva factura
+          </div>
+        </div>
+      )}
     </div>
   );
 };
