@@ -30,20 +30,11 @@ export default function Header({ showLogo }) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        // Check cache first
-        const cached = sessionStorage.getItem('isAdmin');
-        if (cached !== null) {
-          setIsAdmin(cached === 'true');
-          return;
-        }
-
-        // If not cached, fetch from API
+        // Siempre verificar en el servidor (sin cachear)
+        // Esto asegura que los cambios de usuario se reflejen inmediatamente
         const response = await fetch('/api/user/is-admin');
         const data = await response.json();
         const adminStatus = data.isAdmin || false;
-
-        // Cache for this session
-        sessionStorage.setItem('isAdmin', String(adminStatus));
         setIsAdmin(adminStatus);
       } catch (err) {
         console.error('Error checking admin status:', err);
