@@ -8,7 +8,7 @@
  *
  * Request body:
  * {
- *   invoice_data: { company_name, nif_cif, address, country, items_count, total_amount_eur, vat_amount, surcharge_applied, surcharge_amount, is_preorder },
+ *   invoice_data: { company_name, nif_cif, address, country, items_count, items_data, total_amount_eur, vat_amount, surcharge_applied, surcharge_amount, is_preorder },
  *   pdf_base64: "JVBERi0xLjQK..."
  * }
  */
@@ -86,7 +86,9 @@ export const POST = async ({ request }) => {
         p_vat_amount: Math.round(invoice_data.vat_amount * 100) / 100,
         p_surcharge_applied: invoice_data.surcharge_applied || false,
         p_surcharge_amount: invoice_data.surcharge_amount ? Math.round(invoice_data.surcharge_amount * 100) / 100 : 0,
-        p_is_preorder: invoice_data.is_preorder || false
+        p_is_preorder: invoice_data.is_preorder || false,
+        p_items_data: invoice_data.items_data || null,
+        p_previous_invoice_id: invoice_data.previous_invoice_id || null
       });
 
     if (insertError || !insertedInvoice || insertedInvoice.length === 0) {
