@@ -12,7 +12,6 @@
  * - Acciones (descargar, ver)
  */
 
-import React, { useState } from 'react';
 
 export default function InvoiceTable({
   invoices,
@@ -24,32 +23,33 @@ export default function InvoiceTable({
   onPageChange,
   onDownload,
   onEdit,
-  onDelete,
-  onUpdateShopifyNumber
+  onDelete
+  // onUpdateShopifyNumber - COMENTADO: FASE 2.6
 }) {
-  // Estado local para los números de Shopify siendo editados
-  const [editingShopifyNumbers, setEditingShopifyNumbers] = useState({});
-
-  const handleShopifyNumberChange = (invoiceId, newValue) => {
-    setEditingShopifyNumbers(prev => ({
-      ...prev,
-      [invoiceId]: newValue
-    }));
-  };
-
-  const handleShopifyNumberBlur = async (invoiceId) => {
-    const newNumber = editingShopifyNumbers[invoiceId];
-    if (newNumber !== undefined) {
-      // Esperar a que se complete la actualización antes de limpiar
-      await onUpdateShopifyNumber(invoiceId, newNumber);
-      // Limpiar el estado local después de que se complete
-      setEditingShopifyNumbers(prev => {
-        const updated = { ...prev };
-        delete updated[invoiceId];
-        return updated;
-      });
-    }
-  };
+  // // COMENTADO: Funcionalidad de número Shopify (FASE 2.6)
+  // // Estado local para los números de Shopify siendo editados
+  // const [editingShopifyNumbers, setEditingShopifyNumbers] = useState({});
+  //
+  // const handleShopifyNumberChange = (invoiceId, newValue) => {
+  //   setEditingShopifyNumbers(prev => ({
+  //     ...prev,
+  //     [invoiceId]: newValue
+  //   }));
+  // };
+  //
+  // const handleShopifyNumberBlur = async (invoiceId) => {
+  //   const newNumber = editingShopifyNumbers[invoiceId];
+  //   if (newNumber !== undefined) {
+  //     // Esperar a que se complete la actualización antes de limpiar
+  //     await onUpdateShopifyNumber(invoiceId, newNumber);
+  //     // Limpiar el estado local después de que se complete
+  //     setEditingShopifyNumbers(prev => {
+  //       const updated = { ...prev };
+  //       delete updated[invoiceId];
+  //       return updated;
+  //     });
+  //   }
+  // };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -116,7 +116,8 @@ export default function InvoiceTable({
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">NIF/CIF</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha</th>
               <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Pedido Shopify</th>
+              {/* <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Pedido Shopify</th> */}
+              {/* COMENTADO: Funcionalidad Shopify (FASE 2.6) */}
               <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Estado</th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Acciones</th>
             </tr>
@@ -170,8 +171,8 @@ export default function InvoiceTable({
                   {formatCurrency(invoice.total_amount_eur)}
                 </td>
 
-                {/* Pedido Shopify */}
-                <td className="px-4 py-3 text-center">
+                {/* Pedido Shopify - COMENTADO: FASE 2.6 */}
+                {/* <td className="px-4 py-3 text-center">
                   <input
                     type="text"
                     value={editingShopifyNumbers[invoice.id] !== undefined ? editingShopifyNumbers[invoice.id] : (invoice.shopify_order_number || '')}
@@ -181,7 +182,7 @@ export default function InvoiceTable({
                     disabled={loading || invoice.status === 'cancelled'}
                     className="w-24 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
-                </td>
+                </td> */}
 
                 {/* Estado */}
                 <td className="px-4 py-3 text-center">

@@ -398,7 +398,7 @@ export default function AdminInvoices() {
           onDownload={handleDownloadInvoice}
           onEdit={handleEditInvoice}
           onDelete={handleDeleteInvoice}
-          onUpdateShopifyNumber={handleUpdateShopifyNumber}
+          // onUpdateShopifyNumber={handleUpdateShopifyNumber} - COMENTADO: FASE 2.6
         />
 
         {/* Acciones de bulk */}
