@@ -116,6 +116,7 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
             <option value="draft">Borrador</option>
             <option value="finalized">Finalizada</option>
             <option value="rehashed">Rehecha</option>
+            <option value="cancelled">Cancelada</option>
           </select>
         </div>
       </div>
