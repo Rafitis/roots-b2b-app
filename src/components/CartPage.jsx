@@ -72,7 +72,6 @@ const CartPage = ({ DNI, IBAN}) => {
   useEffect(() => {
     if (isEditingMode && customerInfo.fiscal_name) {
       localStorage.setItem('editingCustomerInfo', JSON.stringify(customerInfo));
-      console.log('💾 Customer info guardado en localStorage');
     }
   }, [customerInfo, isEditingMode]);
 
@@ -82,38 +81,30 @@ const CartPage = ({ DNI, IBAN}) => {
       const editingData = localStorage.getItem('editingInvoice');
       const editingDataLoaded = localStorage.getItem('editingInvoiceLoaded');
 
-      console.log('🔍 CartPage mount - editingData:', !!editingData, 'editingDataLoaded:', !!editingDataLoaded);
-
       // Solo cargar si: 1) hay datos de edición, Y 2) NO se han cargado aún en esta sesión
       if (editingData && !editingDataLoaded) {
         try {
           const parsed = JSON.parse(editingData);
-          console.log('📦 Loading invoice for editing:', parsed.original_invoice_number);
-          console.log('📊 Items count:', parsed.items?.length || 0);
 
           // Marcar que ya cargamos los datos en esta sesión
           localStorage.setItem('editingInvoiceLoaded', 'true');
 
           // Limpiar carrito actual
           removeAllFromCart();
-          console.log('🗑️ Carrito limpiado');
 
           // Cargar items de la factura
           if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
             addToCartMultiple(parsed.items);
-            console.log('✅ addToCartMultiple ejecutado con', parsed.items.length, 'items');
 
             // Dar un pequeño delay para que los items se persistan en localStorage
             setTimeout(() => {
               const cartNow = getCart();
-              console.log('✅ Cart después del delay:', cartNow.length, 'items');
               setCartItems(cartNow);
             }, 50);
           }
 
           // Cargar información del cliente (incluyendo shopify_order_number e isRecharge)
           const loadedCountry = parsed.customer_info.country;
-          console.log('🌍 País cargado de la factura:', loadedCountry);
 
           setCustomerInfo({
             fiscal_name: parsed.customer_info.fiscal_name,
@@ -193,33 +184,27 @@ const CartPage = ({ DNI, IBAN}) => {
 
   // Calcular totales para pasar a InvoiceDownload
   const countryCode = customerInfo.country || 'ES';
-  console.log('💰 Calculando totales con país:', countryCode, 'Recargo:', customerInfo.isRecharge);
 
   const { total_sin_iva, iva, total_recargo, total_factura } = calculateTotals({
     countryCode,
     isRecharge: customerInfo.isRecharge
   });
 
-  console.log('📊 Totales calculados - Sin IVA:', total_sin_iva, 'IVA:', iva, 'Total:', total_factura);
-
   // Calcular envío basado en país y total
   const calculateShipping = () => {
     // Canarias siempre envío gratis
     if (countryCode === 'ES-CN' || countryCode === 'ES-CE' || countryCode === 'ES-ML') {
-      console.log('🚚 Envío gratis (Canarias)');
       return 0;
     }
 
     // España: 5€ (gratis si > 200€)
     if (countryCode === 'ES') {
       const shipping = total_factura > 200 ? 0 : 5;
-      console.log('🚚 Envío España:', shipping, '€ (Total sin envío:', total_factura, '€)');
       return shipping;
     }
 
     // Otros países: 15€ (gratis si > 400€)
     const shipping = total_factura > 400 ? 0 : 15;
-    console.log('🚚 Envío Internacional:', shipping, '€ (Total sin envío:', total_factura, '€)');
     return shipping;
   };
 

@@ -211,7 +211,6 @@ const InvoiceDownload = ({
               : `${t('download.success')} ${result.invoice_number}`;
 
             toast.success(successMessage);
-            console.log('Factura guardada:', result);
 
             // Limpiar localStorage de edición si estábamos editando
             if (isEditingMode) {
