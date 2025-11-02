@@ -1,7 +1,7 @@
 // useCart.js
 import { persistentAtom } from "@nanostores/persistent";
 import { computed } from 'nanostores'
-import { vatRates } from "@data/vatRates";
+import { calculateTotals as calculateTotalsLib } from "@lib/invoice-calculations.js";
 // Definimos el store usando la clave "cart" y un array vacío como valor inicial.
 export const itemsStore = persistentAtom("cart", [], {
   encode: JSON.stringify,
@@ -95,8 +95,8 @@ export function addToCart({ tag, product, quantity, variant, isPreOrder }) {
     quantity: quantity,
     discount: discount,
     size: variant.talla,
-    color: variant.color,
-    price: variant.precio,
+    color: variant.color || '', // Normalizar null/undefined a string vacío
+    price: Number(variant.precio), // Convertir a número para validación
     sku: variant.SKU,
     isPreOrder: isPreOrder,
     tag: tag,
@@ -129,8 +129,8 @@ export function addToCart_OLD({ tag, product, quantity, size, color }) {
     quantity: quantity,
     discount: discount,
     size: size,
-    color: color,
-    price: product.Precio,
+    color: color || '', // Normalizar null/undefined a string vacío
+    price: Number(product.Precio), // Convertir a número para validación
     tag: tag,
   };
 
@@ -163,34 +163,42 @@ export function addToCartMultiple(items) {
   // Limpiar carrito primero
   itemsStore.set([]);
 
-  // Agregar todos los items
-  itemsStore.set(items);
+  // Normalizar datos de los items (convertir tipos)
+  const normalizedItems = items.map(item => ({
+    ...item,
+    color: item.color || '', // Normalizar null/undefined a string vacío
+    price: Number(item.price), // Convertir a número para validación
+  }));
+
+  // Agregar todos los items normalizados
+  itemsStore.set(normalizedItems);
 
   // Recalcular descuentos por product_id
-  const uniqueProductIds = [...new Set(items.map(item => item.product_id))];
+  const uniqueProductIds = [...new Set(normalizedItems.map(item => item.product_id))];
   uniqueProductIds.forEach(product_id => {
-    const item = items.find(i => i.product_id === product_id);
+    const item = normalizedItems.find(i => i.product_id === product_id);
     if (item) {
       updateCartDiscount(item.tag, product_id);
     }
   });
 }
 
-export function calculateTotals({countryCode, isRecharge = false}) {
+/**
+ * Calcula todos los totales de una factura (sin incluir envío)
+ * Usa la función centralizada de invoice-calculations.js
+ *
+ * @param {string} countryCode - Código de país (ej: 'ES', 'FR', 'ES-CN')
+ * @param {boolean} isRecharge - Si aplicar recargo de equivalencia (5.2%)
+ * @returns {Object} { total_sin_iva, iva, total_recargo, total_factura }
+ */
+export function calculateTotals({countryCode = 'ES', isRecharge = false}) {
   const cart = getCart();
 
-  // En Canarias no se aplica IVA
-  const isCanaryIslandOrCeutaOrMelilla = countryCode === "ES-CN" || countryCode === "ES-CE" || countryCode === "ES-ML";
-  const vatRate = vatRates[countryCode]?.vat || 21;
-
-  const total_sin_iva = cart.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
-  const iva = isCanaryIslandOrCeutaOrMelilla ? 0 : total_sin_iva * (vatRate / 100);
-  const total_recargo = isRecharge ?? 0 ? (total_sin_iva * 0.052) : 0;
-  const total_factura = total_sin_iva + iva + total_recargo;
-  return {
-    total_sin_iva,
-    iva,
-    total_recargo,
-    total_factura,
-  };
+  // Usar función centralizada que NO incluye envío (para compatibilidad con store)
+  return calculateTotalsLib({
+    items: cart,
+    countryCode,
+    applyRecharge: isRecharge,
+    includeShipping: false
+  });
 }

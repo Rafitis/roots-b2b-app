@@ -4,7 +4,8 @@ import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import SummaryCheckout from "@components/SummaryCheckout";
-import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, calculateTotals, addToCartMultiple, itemsStore } from "@hooks/useCart"
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, addToCartMultiple, itemsStore } from "@hooks/useCart"
+import { calculateTotals } from "@lib/invoice-calculations.js";
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 import toast, { Toaster } from 'react-hot-toast'
@@ -183,41 +184,14 @@ const CartPage = ({ DNI, IBAN}) => {
   };
 
   // Calcular totales para pasar a InvoiceDownload
+  // Usando función centralizada que incluye todos los cálculos
   const countryCode = customerInfo.country || 'ES';
-
-  const { total_sin_iva, iva, total_recargo, total_factura } = calculateTotals({
+  const totals = calculateTotals({
+    items: cartItems,
     countryCode,
-    isRecharge: customerInfo.isRecharge
+    applyRecharge: customerInfo.isRecharge,
+    includeShipping: true
   });
-
-  // Calcular envío basado en país y total
-  const calculateShipping = () => {
-    // Canarias siempre envío gratis
-    if (countryCode === 'ES-CN' || countryCode === 'ES-CE' || countryCode === 'ES-ML') {
-      return 0;
-    }
-
-    // España: 5€ (gratis si > 200€)
-    if (countryCode === 'ES') {
-      const shipping = total_factura > 200 ? 0 : 5;
-      return shipping;
-    }
-
-    // Otros países: 15€ (gratis si > 400€)
-    const shipping = total_factura > 400 ? 0 : 15;
-    return shipping;
-  };
-
-  const shipping = calculateShipping();
-  const total_con_envio = total_factura + shipping;
-
-  const totals = {
-    total_sin_iva,
-    iva,
-    recargo: total_recargo,
-    shipping,
-    total_factura: total_con_envio
-  };
 
   return (
     <div>
@@ -250,7 +224,7 @@ const CartPage = ({ DNI, IBAN}) => {
       <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
       <h2 className="text-xl font-bold py-10">{t('table.title')}</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
-      <SummaryCheckout customerInfo={customerInfo} />
+      <SummaryCheckout items={cartItems} customerInfo={customerInfo} />
       <div className="flex justify-between">
         <InvoiceDownload
           items={cartItems}
