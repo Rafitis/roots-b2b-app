@@ -220,6 +220,159 @@ export default function AdminInvoices() {
     }
   };
 
+  /**
+   * Editar factura (copiar items al carrito)
+   * Guarda en localStorage y redirige a /carrito para editar
+   */
+  const handleEditInvoice = async (invoiceId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/copy-to-cart`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Error al copiar factura al carrito');
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      // ⚠️ IMPORTANTE: Limpiar los flags para que CartPage sepa que debe cargar los datos nuevos
+      localStorage.removeItem('editingInvoiceLoaded');
+      localStorage.removeItem('editingInvoiceNumber');
+      localStorage.removeItem('editingInvoiceId');
+      localStorage.removeItem('editingCustomerInfo');
+
+      // Guardar datos en localStorage para que CartPage los detecte
+      localStorage.setItem('editingInvoice', JSON.stringify({
+        original_invoice_id: data.invoice_id,
+        original_invoice_number: data.original_invoice_number,
+        items: data.items,
+        customer_info: data.customer_info
+      }));
+
+      toast.success(`Factura ${data.original_invoice_number} copiada al carrito`);
+
+      // Redirigir a /carrito
+      window.location.href = '/carrito';
+
+    } catch (error) {
+      console.error('Error editing invoice:', error);
+      toast.error('Error al editar factura');
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Eliminar una factura
+   */
+  const handleDeleteInvoice = async (invoiceId, invoiceNumber) => {
+    // Confirmar eliminación
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar la factura ${invoiceNumber}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Error al eliminar factura');
+        setLoading(false);
+        return;
+      }
+
+      // Recargar la lista de facturas
+      toast.success(`Factura ${invoiceNumber} eliminada correctamente`);
+      loadInvoices(pagination.page);
+
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      toast.error('Error al eliminar factura');
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Actualizar número de Shopify
+   * Retorna una Promise para que el caller pueda hacer await
+   */
+  const handleUpdateShopifyNumber = async (invoiceId, newNumber) => {
+    return new Promise((resolve) => {
+      if (!newNumber.trim()) {
+        // Si está vacío, permitir borrar
+        try {
+          fetch(`/api/invoices/${invoiceId}/update-shopify-number`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shopify_order_number: '' })
+          })
+            .then(() => {
+              // Actualizar el estado local
+              setInvoices(invoices.map(inv =>
+                inv.id === invoiceId
+                  ? { ...inv, shopify_order_number: '' }
+                  : inv
+              ));
+              toast.success('Número de Shopify eliminado');
+              resolve();
+            })
+            .catch(error => {
+              console.error('Error clearing shopify number:', error);
+              toast.error('Error al eliminar número de Shopify');
+              resolve();
+            });
+        } catch (error) {
+          console.error('Error clearing shopify number:', error);
+          toast.error('Error al eliminar número de Shopify');
+          resolve();
+        }
+        return;
+      }
+
+      try {
+        fetch(`/api/invoices/${invoiceId}/update-shopify-number`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shopify_order_number: newNumber.trim() })
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const data = await response.json();
+              toast.error(data.error || 'Error al actualizar número de Shopify');
+              resolve();
+              return;
+            }
+
+            // Actualizar el estado local
+            setInvoices(invoices.map(inv =>
+              inv.id === invoiceId
+                ? { ...inv, shopify_order_number: newNumber.trim() }
+                : inv
+            ));
+            toast.success('Número de Shopify actualizado');
+            resolve();
+          })
+          .catch(error => {
+            console.error('Error updating shopify number:', error);
+            toast.error('Error al actualizar número de Shopify');
+            resolve();
+          });
+      } catch (error) {
+        console.error('Error updating shopify number:', error);
+        toast.error('Error al actualizar número de Shopify');
+        resolve();
+      }
+    });
+  };
+
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
@@ -243,6 +396,9 @@ export default function AdminInvoices() {
           onSelectAll={handleSelectAll}
           onPageChange={handlePageChange}
           onDownload={handleDownloadInvoice}
+          onEdit={handleEditInvoice}
+          onDelete={handleDeleteInvoice}
+          onUpdateShopifyNumber={handleUpdateShopifyNumber}
         />
 
         {/* Acciones de bulk */}
