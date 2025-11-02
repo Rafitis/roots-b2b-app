@@ -9,7 +9,7 @@
  * - date_to: Fecha fin (YYYY-MM-DD)
  * - nif: NIF/CIF a buscar
  * - company: Nombre de empresa a buscar
- * - status: Estado (draft, finalized, rehashed)
+ * - status: Estado (draft, finalized, rehashed, cancelled)
  * - page: Número de página (default: 1)
  * - per_page: Resultados por página (default: 50, max: 100)
  */
@@ -85,7 +85,7 @@ export const GET = async ({ request }) => {
       query = query.ilike('company_name', `%${company}%`);
     }
 
-    if (status && ['draft', 'finalized', 'rehashed'].includes(status)) {
+    if (status && ['draft', 'finalized', 'rehashed', 'cancelled'].includes(status)) {
       query = query.eq('status', status);
     }
 
