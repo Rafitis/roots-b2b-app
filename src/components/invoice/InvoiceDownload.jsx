@@ -76,7 +76,9 @@ const InvoiceDownload = ({
   iban,
   customerInfo,
   title,
-  totals = {} // Se espera: { total_sin_iva, iva, recargo, total }
+  totals = {}, // Se espera: { total_sin_iva, iva, recargo, total }
+  isEditingMode = false,
+  editingInvoiceId = null
 }) => {
 
   const { currentLang } = useI18n();
@@ -134,6 +136,27 @@ const InvoiceDownload = ({
       reader.onload = async () => {
         const pdfBase64 = reader.result;
 
+        // Preparar datos de items para guardar en JSONB
+        // Estructura: [{ id, name, color, size, quantity, price, discount, total, product_img }, ...]
+        const itemsData = items.map(item => {
+          const single_price = Number(item.price);
+          const discountFactor = 1 - Number(item.discount) / 100;
+          const total = (item.quantity * single_price * discountFactor).toFixed(2);
+
+          return {
+            id: item.id,
+            name: item.name,
+            color: item.color,
+            size: item.size,
+            quantity: item.quantity,
+            price: single_price,
+            discount: item.discount,
+            total: parseFloat(total),
+            product_img: item.product_img,
+            isPreOrder: item.isPreOrder || false
+          };
+        });
+
         // Preparar datos de factura
         const invoiceData = {
           company_name: customerInfo.fiscal_name,
@@ -141,11 +164,17 @@ const InvoiceDownload = ({
           address: customerInfo.address,
           country: customerInfo.country || 'ES',
           items_count: items.length,
-          total_amount_eur: totals.total_sin_iva || 0,
+          items_data: itemsData,
+          total_amount_eur: totals.total_factura || 0,
           vat_amount: totals.iva || 0,
-          surcharge_applied: !!totals.recargo,
+          surcharge_applied: !!customerInfo.isRecharge,
           surcharge_amount: totals.recargo || 0,
-          is_preorder: preOrderItems.length > 0
+          shipping_amount: totals.shipping || 0,
+          is_preorder: preOrderItems.length > 0,
+          // Si estamos editando, pasar el ID de la factura original
+          previous_invoice_id: isEditingMode ? editingInvoiceId : null,
+          // Incluir número de Shopify si existe
+          shopify_order_number: customerInfo.shopify_order_number || null
         };
 
         // Enviar al servidor
@@ -164,8 +193,39 @@ const InvoiceDownload = ({
           const result = await response.json();
 
           if (response.ok && result.success) {
-            toast.success(`${t('download.success')} ${result.invoice_number}`);
+            // Si estamos en modo edición, marcar la factura original como 'cancelled'
+            if (isEditingMode && editingInvoiceId) {
+              try {
+                await fetch(`/api/invoices/${editingInvoiceId}/cancel`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              } catch (error) {
+                console.error('Error cancelling original invoice:', error);
+                // No interrumpir el flujo aunque falle cancelar
+              }
+            }
+
+            const successMessage = isEditingMode
+              ? `${t('download.success')} ${result.invoice_number} (Original marcada como cancelada)`
+              : `${t('download.success')} ${result.invoice_number}`;
+
+            toast.success(successMessage);
             console.log('Factura guardada:', result);
+
+            // Limpiar localStorage de edición si estábamos editando
+            if (isEditingMode) {
+              localStorage.removeItem('editingInvoice');
+              localStorage.removeItem('editingInvoiceLoaded');
+              localStorage.removeItem('editingCustomerInfo');
+              localStorage.removeItem('editingInvoiceNumber');
+              localStorage.removeItem('editingInvoiceId');
+
+              // Redirigir al dashboard de admin después de guardar
+              setTimeout(() => {
+                window.location.href = '/admin/invoices';
+              }, 2000);
+            }
           } else {
             // El PDF se descargó pero no se guardó en servidor
             toast.error(result.error || 'Error al guardar en servidor');

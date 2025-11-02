@@ -12,7 +12,7 @@
  * - Acciones (descargar, ver)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function InvoiceTable({
   invoices,
@@ -22,8 +22,35 @@ export default function InvoiceTable({
   onSelectInvoice,
   onSelectAll,
   onPageChange,
-  onDownload
+  onDownload,
+  onEdit,
+  onDelete,
+  onUpdateShopifyNumber
 }) {
+  // Estado local para los números de Shopify siendo editados
+  const [editingShopifyNumbers, setEditingShopifyNumbers] = useState({});
+
+  const handleShopifyNumberChange = (invoiceId, newValue) => {
+    setEditingShopifyNumbers(prev => ({
+      ...prev,
+      [invoiceId]: newValue
+    }));
+  };
+
+  const handleShopifyNumberBlur = async (invoiceId) => {
+    const newNumber = editingShopifyNumbers[invoiceId];
+    if (newNumber !== undefined) {
+      // Esperar a que se complete la actualización antes de limpiar
+      await onUpdateShopifyNumber(invoiceId, newNumber);
+      // Limpiar el estado local después de que se complete
+      setEditingShopifyNumbers(prev => {
+        const updated = { ...prev };
+        delete updated[invoiceId];
+        return updated;
+      });
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -43,7 +70,8 @@ export default function InvoiceTable({
     const statusMap = {
       draft: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '📝 Borrador' },
       finalized: { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Finalizada' },
-      rehashed: { bg: 'bg-blue-100', text: 'text-blue-800', label: '🔄 Rehecha' }
+      rehashed: { bg: 'bg-blue-100', text: 'text-blue-800', label: '🔄 Rehecha' },
+      cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Cancelada' }
     };
     const s = statusMap[status] || statusMap.finalized;
     return s;
@@ -84,9 +112,11 @@ export default function InvoiceTable({
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Factura</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Empresa</th>
+              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">País</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">NIF/CIF</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha</th>
               <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</th>
+              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Pedido Shopify</th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Estado</th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Acciones</th>
             </tr>
@@ -120,6 +150,11 @@ export default function InvoiceTable({
                   {invoice.company_name}
                 </td>
 
+                {/* País */}
+                <td className="px-4 py-3 text-center text-sm text-gray-600 font-mono">
+                  {invoice.country || '—'}
+                </td>
+
                 {/* NIF/CIF */}
                 <td className="px-4 py-3 text-sm text-gray-600">
                   {invoice.nif_cif}
@@ -135,6 +170,19 @@ export default function InvoiceTable({
                   {formatCurrency(invoice.total_amount_eur)}
                 </td>
 
+                {/* Pedido Shopify */}
+                <td className="px-4 py-3 text-center">
+                  <input
+                    type="text"
+                    value={editingShopifyNumbers[invoice.id] !== undefined ? editingShopifyNumbers[invoice.id] : (invoice.shopify_order_number || '')}
+                    onChange={(e) => handleShopifyNumberChange(invoice.id, e.target.value)}
+                    onBlur={() => handleShopifyNumberBlur(invoice.id)}
+                    placeholder="—"
+                    disabled={loading || invoice.status === 'cancelled'}
+                    className="w-24 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                </td>
+
                 {/* Estado */}
                 <td className="px-4 py-3 text-center">
                   {(() => {
@@ -148,7 +196,7 @@ export default function InvoiceTable({
                 </td>
 
                 {/* Acciones */}
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center flex gap-2 justify-center">
                   <button
                     onClick={() => onDownload(
                       invoice.id,
@@ -160,6 +208,24 @@ export default function InvoiceTable({
                     title="Descargar PDF"
                   >
                     📥
+                  </button>
+                  {invoice.status !== 'cancelled' && (
+                    <button
+                      onClick={() => onEdit(invoice.id)}
+                      disabled={loading}
+                      className="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 disabled:bg-gray-400 transition"
+                      title="Editar factura (copiar a carrito)"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onDelete(invoice.id, invoice.invoice_number)}
+                    disabled={loading}
+                    className="inline-block px-3 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 disabled:bg-gray-400 transition"
+                    title="Eliminar factura"
+                  >
+                    🗑️
                   </button>
                 </td>
               </tr>
