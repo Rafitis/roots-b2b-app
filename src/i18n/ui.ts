@@ -105,7 +105,7 @@ export const ui = {
         'invoice.clientNifCif': 'NIF o CIF',
         'invoice.clientAddress': 'DIRECCIÓN',
         'invoice.dateTitle': 'Fecha',
-        'invoice.invoiceNumber': 'Facura',
+        'invoice.invoiceNumber': 'Factura',
         'invoice.total.shipping': 'Envío',
         'invoice.total.shippingCost': 'Gastos de Envío',
         
