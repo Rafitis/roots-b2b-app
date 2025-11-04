@@ -12,6 +12,7 @@
  * - Acciones (descargar, ver)
  */
 
+import { Download, Edit, Trash2 } from 'lucide-react';
 
 export default function InvoiceTable({
   invoices,
@@ -198,36 +199,39 @@ export default function InvoiceTable({
 
                 {/* Acciones */}
                 <td className="px-4 py-3 text-center flex gap-2 justify-center">
-                  <button
-                    onClick={() => onDownload(
-                      invoice.id,
-                      invoice.invoice_number,
-                      invoice.company_name
-                    )}
-                    disabled={loading}
-                    className="inline-block px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 disabled:bg-gray-400 transition"
-                    title="Descargar PDF"
-                  >
-                    📥
-                  </button>
-                  {invoice.status !== 'cancelled' && (
+                  <div className="tooltip" data-tip="Descargar PDF">
                     <button
-                      onClick={() => onEdit(invoice.id)}
+                      onClick={() => onDownload(
+                        invoice.id,
+                        invoice.invoice_number,
+                        invoice.company_name
+                      )}
                       disabled={loading}
-                      className="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 disabled:bg-gray-400 transition"
-                      title="Editar factura (copiar a carrito)"
+                      className="btn btn-primary btn-sm"
                     >
-                      ✏️
+                      <Download size={16} />
                     </button>
+                  </div>
+                  {invoice.status !== 'cancelled' && (
+                    <div className="tooltip" data-tip="Editar factura">
+                      <button
+                        onClick={() => onEdit(invoice.id)}
+                        disabled={loading}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        <Edit size={16} />
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => onDelete(invoice.id, invoice.invoice_number)}
-                    disabled={loading}
-                    className="inline-block px-3 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 disabled:bg-gray-400 transition"
-                    title="Eliminar factura"
-                  >
-                    🗑️
-                  </button>
+                  <div className="tooltip" data-tip="Eliminar factura">
+                    <button
+                      onClick={() => onDelete(invoice.id, invoice.invoice_number)}
+                      disabled={loading}
+                      className="btn btn-error btn-sm"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
