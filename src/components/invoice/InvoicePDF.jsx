@@ -2,8 +2,7 @@
 import { Page, Text, View, Image, Document, StyleSheet } from "@react-pdf/renderer";
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
-import { vatRates } from "@data/vatRates";
-import { calculateTotals } from "@hooks/useCart";
+import { calculateTotals } from "@lib/invoice-calculations.js";
 
 // Estilos del PDF
 const styles = StyleSheet.create({
@@ -124,35 +123,18 @@ function formatDate(date) {
   return dateObj.toLocaleDateString("es-ES");
 }
 
-function calculateTotal(items) {
-  const total = items.reduce((acc, item) => acc + item.quantity * (item.price * (1 - item.discount / 100)), 0);
-  return total
-}
-
 // Componente InvoicePDF
 const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title }) => {
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
 
-  // Si el cliente es de España el envio es gratis si supero los 200€ o si el cliente es de España y de Canarias el envio siempre es gratis
-  const isCanaryIslandOrCeutaOrMelilla = selectedCustomer.country === "ES-CN" || selectedCustomer.country === "ES-CE" || selectedCustomer.country === "ES-ML";
-  const isNationalShipping = (selectedCustomer.country === "ES" || isCanaryIslandOrCeutaOrMelilla);
-  const isInternationalShipping = selectedCustomer.country !== "ES" && !isCanaryIslandOrCeutaOrMelilla;
-
-  // Calcula el total
-  const vatRate = vatRates[selectedCustomer.country]?.vat || 21;
-  const { total_sin_iva, iva, total_recargo, total_factura } = calculateTotals({
-                                                                    countryCode: selectedCustomer.country, 
-                                                                    isRecharge: selectedCustomer.isRecharge});
-  
-  // Si el cliente no es de España se tiene que calcular el IVA de cada pais y el envio es gratis cuando supero los 400€
-  const isFreeShippingInternational = (total_sin_iva + iva > 400) && isInternationalShipping;
-  const isFreeShipping = (total_sin_iva + iva > 200) || (isNationalShipping && isCanaryIslandOrCeutaOrMelilla);
-  
-  let total_factura_envio = total_factura + (isFreeShipping ? 0.00 : 15.00);
-  if (isNationalShipping) {
-    total_factura_envio = total_factura + (isFreeShipping ? 0.00 : 5.00);
-  }
+  // Usar función centralizada que incluye todos los cálculos (IVA, envío, recargo)
+  const { total_sin_iva, iva, recargo, shipping, total_factura: total_factura_envio, vatRate } = calculateTotals({
+    items,
+    countryCode: selectedCustomer.country,
+    applyRecharge: selectedCustomer.isRecharge,
+    includeShipping: true
+  });
   
   // Calcular total de la factura de preventa.
   let thirty_percent = 0;
@@ -188,7 +170,10 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
       
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Text style={styles.bold}>{t("invoice.dateTitle")}: {formatDate(new Date())}</Text>
-          <Text style={styles.bold}>{t("invoice.invoiceNumber")}: </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", marginRight: 10 }}>
+            <Text style={styles.bold}>{t("invoice.invoiceNumber")}: </Text>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: "#000", width: 120, height: 20, marginLeft: 10 }} />
+          </View>
         </View>
 
         <View style={styles.table}>
@@ -217,10 +202,10 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
                   <Text style={styles.cell_secondary}>{quantity}</Text>
                   <Text style={styles.cell_secondary}>{item.color}</Text>
                   <Text style={styles.cell_secondary}>{item.size}</Text>
-                  <Text style={styles.cell_terciary}>€{price}</Text>
-                  <Text style={styles.cell_terciary}>{discount}</Text>
-                  <Text style={styles.cell_terciary}>€{finalUnitPrice}</Text>
-                  <Text style={styles.cell_terciary}>€{totalPrice}</Text>
+                  <Text style={styles.cell_terciary}>€ {price}</Text>
+                  <Text style={styles.cell_terciary}> {discount}</Text>
+                  <Text style={styles.cell_terciary}>€ {finalUnitPrice}</Text>
+                  <Text style={styles.cell_terciary}>€ {totalPrice}</Text>
                 </View>
               );
             })}
@@ -246,17 +231,14 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
             <View style={styles.totalRow}>
               <Text style={styles.label}>{t("invoice.total.recharge")} 5,2%</Text>
               <Text style={styles.value}>
-                {selectedCustomer.isRecharge ? total_recargo.toFixed(2) : '-'} €
+                {selectedCustomer.isRecharge ? recargo.toFixed(2) : '-'} €
               </Text>
             </View>
 
             <View style={styles.totalRow}>
               <Text style={styles.label}>{t("invoice.total.shipping").toUpperCase()}</Text>
               <Text style={styles.value}>
-                {isNationalShipping
-                  ? (isFreeShipping ? '0.00' : '5.00')
-                  : (isFreeShippingInternational ? '0.00' : '15.00')
-                } €
+                {shipping.toFixed(2)} €
               </Text>
             </View>
 
@@ -303,7 +285,7 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
               {t("invoice.total.recharge")} 5,2%
             </Text>
             <Text style={styles.value}>
-              {selectedCustomer.isRecharge ? total_recargo.toFixed(2) : '-'} €
+              {selectedCustomer.isRecharge ? recargo.toFixed(2) : '-'} €
             </Text>
           </View>
 
@@ -312,10 +294,7 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
               {t("invoice.total.shipping").toUpperCase()}
             </Text>
             <Text style={styles.value}>
-              {isNationalShipping
-                ? (isFreeShipping ? '0.00' : '5.00')
-                : (isFreeShippingInternational ? '0.00' : '15.00')
-              } €
+              {shipping.toFixed(2)} €
             </Text>
           </View>
 

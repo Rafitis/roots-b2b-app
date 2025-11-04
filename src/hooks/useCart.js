@@ -50,13 +50,17 @@ export function updateCartDiscount(tag, product_id) {
   const cart = getCart();
   // Filtramos todos los items del mismo producto
   const total_quantity = getTotalItemsSameID(cart, product_id);
-  // Actualizamos el descuento de cada uno
-  cart.forEach((item) => {
+  // Actualizamos el descuento creando un nuevo array (sin mutar)
+  const updatedCart = cart.map((item) => {
     if (item.product_id === product_id) {
-      item.discount = calculateDiscount(tag, total_quantity);
+      return {
+        ...item,
+        discount: calculateDiscount(tag, total_quantity)
+      };
     }
+    return item;
   });
-  itemsStore.set(cart);
+  itemsStore.set(updatedCart);
 }
 
 export function updateCartQuantity(item, newQuantity) {
