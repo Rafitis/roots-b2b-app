@@ -38,20 +38,25 @@ export default function AdminInvoices() {
 
   /**
    * Cargar facturas desde el endpoint
+   * @param {number} pageNum - Número de página (default: 1)
+   * @param {object} filtersToUse - Filtros a usar (default: filtros del estado actual)
    */
-  const loadInvoices = async (pageNum = 1) => {
+  const loadInvoices = async (pageNum = 1, filtersToUse = null) => {
     setLoading(true);
     try {
+      // Usar filtros pasados como parámetro o los del estado
+      const activeFilters = filtersToUse || filters;
+
       // Construir query string
       const queryParams = new URLSearchParams();
       queryParams.append('page', pageNum);
       queryParams.append('per_page', pagination.per_page);
 
-      if (filters.date_from) queryParams.append('date_from', filters.date_from);
-      if (filters.date_to) queryParams.append('date_to', filters.date_to);
-      if (filters.nif) queryParams.append('nif', filters.nif);
-      if (filters.company) queryParams.append('company', filters.company);
-      if (filters.status) queryParams.append('status', filters.status);
+      if (activeFilters.date_from) queryParams.append('date_from', activeFilters.date_from);
+      if (activeFilters.date_to) queryParams.append('date_to', activeFilters.date_to);
+      if (activeFilters.nif) queryParams.append('nif', activeFilters.nif);
+      if (activeFilters.company) queryParams.append('company', activeFilters.company);
+      if (activeFilters.status) queryParams.append('status', activeFilters.status);
 
       // Llamar endpoint
       const response = await fetch(`/api/invoices/list?${queryParams}`);
@@ -97,13 +102,16 @@ export default function AdminInvoices() {
    * Limpiar filtros
    */
   const handleClearFilters = () => {
-    setFilters({
+    const clearedFilters = {
       date_from: '',
       date_to: '',
       nif: '',
       company: '',
       status: ''
-    });
+    };
+    setFilters(clearedFilters);
+    // Recargar todas las facturas sin filtros pasándolos como parámetro
+    loadInvoices(1, clearedFilters);
   };
 
   /**
