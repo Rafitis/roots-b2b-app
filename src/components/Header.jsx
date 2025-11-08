@@ -48,7 +48,7 @@ export default function Header({ showLogo }) {
     try {
       await fetch('/api/auth/signout', { method: 'GET' });
       // Redirigir al login
-      window.location.href = '/login';
+      window.location.href = '/signin';
     } catch (err) {
       console.error('Logout failed:', err);
     }
