@@ -310,75 +310,38 @@ export default function AdminInvoices() {
 
   /**
    * Actualizar número de Shopify
-   * Retorna una Promise para que el caller pueda hacer await
+   * Soporta actualizar o eliminar (con string vacío)
    */
   const handleUpdateShopifyNumber = async (invoiceId, newNumber) => {
-    return new Promise((resolve) => {
-      if (!newNumber.trim()) {
-        // Si está vacío, permitir borrar
-        try {
-          fetch(`/api/invoices/${invoiceId}/update-shopify-number`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shopify_order_number: '' })
-          })
-            .then(() => {
-              // Actualizar el estado local
-              setInvoices(invoices.map(inv =>
-                inv.id === invoiceId
-                  ? { ...inv, shopify_order_number: '' }
-                  : inv
-              ));
-              toast.success('Número de Shopify eliminado');
-              resolve();
-            })
-            .catch(error => {
-              console.error('Error clearing shopify number:', error);
-              toast.error('Error al eliminar número de Shopify');
-              resolve();
-            });
-        } catch (error) {
-          console.error('Error clearing shopify number:', error);
-          toast.error('Error al eliminar número de Shopify');
-          resolve();
-        }
+    const trimmedNumber = newNumber.trim();
+
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/update-shopify-number`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shopify_order_number: trimmedNumber })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Error al actualizar número de Shopify');
         return;
       }
 
-      try {
-        fetch(`/api/invoices/${invoiceId}/update-shopify-number`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ shopify_order_number: newNumber.trim() })
-        })
-          .then(async response => {
-            if (!response.ok) {
-              const data = await response.json();
-              toast.error(data.error || 'Error al actualizar número de Shopify');
-              resolve();
-              return;
-            }
+      // Actualizar el estado local
+      setInvoices(invoices.map(inv =>
+        inv.id === invoiceId
+          ? { ...inv, shopify_order_number: trimmedNumber }
+          : inv
+      ));
 
-            // Actualizar el estado local
-            setInvoices(invoices.map(inv =>
-              inv.id === invoiceId
-                ? { ...inv, shopify_order_number: newNumber.trim() }
-                : inv
-            ));
-            toast.success('Número de Shopify actualizado');
-            resolve();
-          })
-          .catch(error => {
-            console.error('Error updating shopify number:', error);
-            toast.error('Error al actualizar número de Shopify');
-            resolve();
-          });
-      } catch (error) {
-        console.error('Error updating shopify number:', error);
-        toast.error('Error al actualizar número de Shopify');
-        resolve();
-      }
-    });
+      // Mensaje según la acción
+      const actionMsg = trimmedNumber ? 'actualizado' : 'eliminado';
+      toast.success(`Número de Shopify ${actionMsg}`);
+    } catch (error) {
+      console.error('Error updating shopify number:', error);
+      toast.error('Error al actualizar número de Shopify');
+    }
   };
 
   return (
@@ -406,7 +369,7 @@ export default function AdminInvoices() {
           onDownload={handleDownloadInvoice}
           onEdit={handleEditInvoice}
           onDelete={handleDeleteInvoice}
-          // onUpdateShopifyNumber={handleUpdateShopifyNumber} - COMENTADO: FASE 2.6
+          onUpdateShopifyNumber={handleUpdateShopifyNumber}
         />
 
         {/* Acciones de bulk */}

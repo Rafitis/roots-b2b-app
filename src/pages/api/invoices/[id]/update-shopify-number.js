@@ -43,11 +43,11 @@ export const PUT = async ({ request, params }) => {
     const body = await request.json();
     const { shopify_order_number } = body;
 
-    if (!shopify_order_number || typeof shopify_order_number !== 'string') {
+    if (typeof shopify_order_number !== 'string') {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'shopify_order_number es requerido y debe ser texto'
+          error: 'shopify_order_number debe ser texto'
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -102,11 +102,43 @@ export const PUT = async ({ request, params }) => {
       );
     }
 
-    // 6. Retornar respuesta exitosa
+    // 6. Llamar a regenerate-pdf automáticamente
+    // Esto genera un nuevo PDF con el número Shopify actualizado
+    try {
+      // Llamar al endpoint regenerate-pdf
+      // Usando fetch interno (no requiere URL absoluta en Astro)
+      const baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+      const regenerateUrl = `${baseUrl}/api/invoices/${id}/regenerate-pdf`;
+
+      const regenerateResponse = await fetch(regenerateUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || '',
+          ...(request.headers.get('authorization') && {
+            'authorization': request.headers.get('authorization')
+          })
+        }
+      });
+
+      if (!regenerateResponse.ok) {
+        const regenerateData = await regenerateResponse.json();
+        // No es crítico que falle aquí - el número ya fue guardado en BD
+        // El PDF se puede regenerar manualmente después si es necesario
+      }
+    } catch (regenerateError) {
+      console.error(`[update-shopify-number] Error calling regenerate-pdf:`, regenerateError);
+      // Error al regenerar PDF no es fatal - el número fue guardado en BD
+      // Continuamos sin fallar el request
+    }
+
+    // 7. Retornar respuesta exitosa
+    // El número de Shopify fue actualizado en BD
+    // La regeneración del PDF se intentó pero si falló, no es crítico
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Número de Shopify actualizado a: ${shopify_order_number}`,
+        message: `Número de Shopify actualizado a: ${shopify_order_number}. PDF en proceso de regeneración...`,
         invoice_id: id,
         shopify_order_number
       }),
