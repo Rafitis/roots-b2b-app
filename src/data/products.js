@@ -88,4 +88,8 @@ export const SHOES_DATA = {
     "name": "Roots Nomad Lava",
     "price": 36.30,
   },
+  14849742078283: {
+    "name": "Roots Nomad Cerezo",
+    "price": 36.30,
+  },
 }
