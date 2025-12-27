@@ -137,7 +137,7 @@ const InvoiceDownload = ({
         const pdfBase64 = reader.result;
 
         // Preparar datos de items para guardar en JSONB
-        // Estructura: [{ id, name, color, size, quantity, price, discount, total, product_img }, ...]
+        // Estructura: [{ id, product_id, tag, name, color, size, quantity, price, discount, total, product_img, sku, isPreOrder }, ...]
         const itemsData = items.map(item => {
           const single_price = Number(item.price);
           const discountFactor = 1 - Number(item.discount) / 100;
@@ -145,6 +145,8 @@ const InvoiceDownload = ({
 
           return {
             id: item.id,
+            product_id: item.product_id,
+            tag: item.tag,
             name: item.name,
             color: item.color,
             size: item.size,
@@ -153,6 +155,7 @@ const InvoiceDownload = ({
             discount: item.discount,
             total: parseFloat(total),
             product_img: item.product_img,
+            sku: item.sku,
             isPreOrder: item.isPreOrder || false
           };
         });
