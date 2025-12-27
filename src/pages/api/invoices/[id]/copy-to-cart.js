@@ -4,7 +4,8 @@
  * Copia los items de una factura al carrito para edición:
  * 1. Obtiene la factura por ID
  * 2. Extrae items_data
- * 3. Retorna los items en formato compatible con Nanostores
+ * 3. Completa campos faltantes (product_id, tag, sku) si es factura antigua
+ * 4. Retorna los items en formato compatible con Nanostores
  *
  * El frontend (admin) debería:
  * - Limpiar el carrito actual
@@ -15,6 +16,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { completeOldInvoiceItems } from '@lib/invoice-item-recovery.js';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
@@ -80,14 +82,27 @@ export const POST = async ({ request, params }) => {
       );
     }
 
-    // 5. Retornar datos para cargar en el carrito
+    // 5. Completar items antiguos que no tienen product_id, tag o sku
+    // NOTA: Esta lógica solo es necesaria para facturas creadas antes de 2025-12-27.
+    // Se puede deprecar en verano 2026 junto con invoice-item-recovery.js
+    let items = invoice.items_data;
+
+    const isOldInvoice = items.some(
+      item => !item.product_id || item.tag === undefined || !item.sku
+    );
+
+    if (isOldInvoice) {
+      items = await completeOldInvoiceItems(items);
+    }
+
+    // 6. Retornar datos para cargar en el carrito
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Datos de factura listos para editar',
         invoice_id: invoice.id,
         original_invoice_number: invoice.invoice_number,
-        items: invoice.items_data,
+        items: items,
         customer_info: {
           fiscal_name: invoice.company_name,
           nif_cif: invoice.nif_cif,
