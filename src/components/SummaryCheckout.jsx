@@ -1,19 +1,14 @@
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
-import { calculateTotals } from "@lib/invoice-calculations.js";
+import { useCartTotals } from "@hooks/useCart";
 
-export default function SummaryCheckout({ items = [], customerInfo }) {
+export default function SummaryCheckout({ customerInfo }) {
     const { currentLang } = useI18n();
     const t = useTranslations(currentLang);
 
-    // Usar función centralizada que incluye todos los cálculos (IVA, envío, recargo)
-    const countryCode = customerInfo.country || 'ES';
-    const { total_sin_iva, iva, recargo, shipping, total_factura: total_factura_envio, vatRate } = calculateTotals({
-      items,
-      countryCode,
-      applyRecharge: customerInfo.isRecharge,
-      includeShipping: true
-    });
+    // ✅ NUEVO: Usar hook reactivo y memoizado (solución al bug de race condition)
+    // Lee directamente del store, siempre actualizado
+    const { total_sin_iva, iva, recargo, shipping, total_factura: total_factura_envio, vatRate } = useCartTotals(customerInfo, true);
     return (
         <div className="flex justify-end m-20 px-20">
             <div className="flex flex-col gap-2 w-1/5">

@@ -1,6 +1,8 @@
 // useCart.js
 import { persistentAtom } from "@nanostores/persistent";
 import { computed } from 'nanostores'
+import { useStore } from '@nanostores/react';
+import { useMemo } from 'react';
 import { calculateTotals as calculateTotalsLib } from "@lib/invoice-calculations.js";
 // Definimos el store usando la clave "cart" y un array vacío como valor inicial.
 export const itemsStore = persistentAtom("cart", [], {
@@ -204,5 +206,87 @@ export function calculateTotals({countryCode = 'ES', isRecharge = false}) {
     countryCode,
     applyRecharge: isRecharge,
     includeShipping: false
+  });
+}
+
+// ============================================================================
+// HOOKS REACTIVOS - Solución al bug de race condition
+// ============================================================================
+
+/**
+ * Hook reactivo para obtener items del carrito
+ * Se actualiza automáticamente cuando itemsStore cambia (sin delay)
+ *
+ * VENTAJA: Usa useStore directamente, sin suscripción manual ni setState
+ *
+ * @returns {Array} Array de items del carrito
+ */
+export function useCartItems() {
+  return useStore(itemsStore);
+}
+
+/**
+ * Hook reactivo para obtener totales del carrito con memoización
+ *
+ * SOLUCIÓN AL BUG:
+ * - Lee directamente de itemsStore con useStore (sin delay de suscripción)
+ * - Memoiza cálculos con useMemo (optimización de performance)
+ * - Centraliza lógica (todos los componentes usan la misma fuente)
+ * - Elimina race conditions entre estado local de React y localStorage
+ *
+ * @param {Object} customerInfo - Info del cliente con country e isRecharge
+ * @param {boolean} includeShipping - Si incluir envío en totales (default: true)
+ * @returns {Object} { total_sin_iva, iva, recargo, shipping, total_factura, vatRate }
+ *
+ * @example
+ * const totals = useCartTotals(customerInfo, true);
+ * console.log(totals.total_factura); // Total con IVA + recargo + envío
+ */
+export function useCartTotals(customerInfo = {}, includeShipping = true) {
+  // ✅ Leer items directamente del store (reactivo, sin delay)
+  const items = useStore(itemsStore);
+
+  // ✅ Memoizar totales para evitar cálculos innecesarios
+  const totals = useMemo(() => {
+    const countryCode = customerInfo.country || 'ES';
+    const applyRecharge = customerInfo.isRecharge || false;
+
+    return calculateTotalsLib({
+      items,
+      countryCode,
+      applyRecharge,
+      includeShipping
+    });
+  }, [items, customerInfo.country, customerInfo.isRecharge, includeShipping]);
+
+  return totals;
+}
+
+/**
+ * Función para obtener totales SIN reactividad (para uso en handlers/callbacks)
+ * Útil cuando necesitas los totales en el momento exacto de ejecución
+ *
+ * CASO DE USO: En saveInvoiceToServer(), leer totales AHORA sin depender de props
+ *
+ * @param {Object} customerInfo - Info del cliente
+ * @param {boolean} includeShipping - Si incluir envío
+ * @returns {Object} Totales calculados en este instante
+ *
+ * @example
+ * const handleSave = () => {
+ *   const currentTotals = getCartTotals(customerInfo, true);
+ *   // currentTotals está garantizado actualizado AHORA
+ * }
+ */
+export function getCartTotals(customerInfo = {}, includeShipping = true) {
+  const items = itemsStore.get(); // Leer valor actual sin suscripción
+  const countryCode = customerInfo.country || 'ES';
+  const applyRecharge = customerInfo.isRecharge || false;
+
+  return calculateTotalsLib({
+    items,
+    countryCode,
+    applyRecharge,
+    includeShipping
   });
 }

@@ -1,11 +1,10 @@
 // src/components/CartPage.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import SummaryCheckout from "@components/SummaryCheckout";
-import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, getCart, addToCartMultiple, itemsStore } from "@hooks/useCart"
-import { calculateTotals } from "@lib/invoice-calculations.js";
+import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, addToCartMultiple, useCartItems, useCartTotals } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 import toast, { Toaster } from 'react-hot-toast'
@@ -59,15 +58,8 @@ const CartPage = ({ DNI, IBAN}) => {
       shopify_order_number: "",
     };
   });
-  const [cartItems, setCartItems] = useState(getCart());
-
-  // Suscribirse a cambios en itemsStore (cuando se añaden/eliminan items desde otros componentes)
-  useEffect(() => {
-    const unsubscribe = itemsStore.subscribe((items) => {
-      setCartItems(items);
-    });
-    return unsubscribe;
-  }, []);
+  // ✅ NUEVO: Usar hook reactivo sin delay (solución al bug de race condition)
+  const cartItems = useCartItems();
 
   // Persistir cambios en customerInfo en localStorage mientras se está editando
   useEffect(() => {
@@ -96,12 +88,7 @@ const CartPage = ({ DNI, IBAN}) => {
           // Cargar items de la factura
           if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
             addToCartMultiple(parsed.items);
-
-            // Dar un pequeño delay para que los items se persistan en localStorage
-            setTimeout(() => {
-              const cartNow = getCart();
-              setCartItems(cartNow);
-            }, 50);
+            // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
           }
 
           // Cargar información del cliente (incluyendo shopify_order_number e isRecharge)
@@ -138,18 +125,18 @@ const CartPage = ({ DNI, IBAN}) => {
     const newQuantity = Number(e.target.value)
     updateCartQuantity(item, newQuantity)
     updateCartDiscount(item.tag, item.product_id)
-    setCartItems(getCart())
+    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   }
 
   // Función para eliminar un item del carrito
   const handleDeleteItem = (item) => {
-    const newCart = removeFromCart(item);
-    setCartItems(newCart);
+    removeFromCart(item);
+    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   };
 
   const handleDeleteAll = () => {
-    const newCart = removeAllFromCart();
-    setCartItems(newCart);
+    removeAllFromCart();
+    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   };
 
   // Crear un nuevo pedido (salir del modo edición)
@@ -177,21 +164,15 @@ const CartPage = ({ DNI, IBAN}) => {
         isRecharge: false,
         shopify_order_number: "",
       });
-      setCartItems([]);
+      // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
 
       toast.success('Nuevo pedido creado. Carrito vacío.');
     }
   };
 
-  // Calcular totales para pasar a InvoiceDownload
-  // Usando función centralizada que incluye todos los cálculos
-  const countryCode = customerInfo.country || 'ES';
-  const totals = calculateTotals({
-    items: cartItems,
-    countryCode,
-    applyRecharge: customerInfo.isRecharge,
-    includeShipping: true
-  });
+  // ✅ NUEVO: Calcular totales con hook reactivo y memoizado
+  // Se actualiza automáticamente cuando cambia el carrito o customerInfo
+  const totals = useCartTotals(customerInfo, true);
 
   return (
     <div>
@@ -224,7 +205,7 @@ const CartPage = ({ DNI, IBAN}) => {
       <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
       <h2 className="text-xl font-bold py-10">{t('table.title')}</h2>
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
-      <SummaryCheckout items={cartItems} customerInfo={customerInfo} />
+      <SummaryCheckout customerInfo={customerInfo} />
       <div className="flex justify-between">
         <InvoiceDownload
           items={cartItems}

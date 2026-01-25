@@ -12,6 +12,7 @@ import InvoicePDF from '@components/invoice/InvoicePDF';
 import ErrorBoundary from '@components/errors/ErrorBoundary';
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from '@hooks/useI18n';
+import { getCart, getCartTotals } from '@hooks/useCart';
 import toast, { Toaster } from 'react-hot-toast'
 
 // Estilo mínimo para la página de fallback
@@ -124,10 +125,36 @@ const InvoiceDownload = ({
 
   /**
    * Genera el PDF en base64 y lo envía al servidor para guardarlo
+   *
+   * 🛡️ PROTECCIÓN CONTRA RACE CONDITION:
+   * Lee items y totales DIRECTAMENTE del store en el momento de guardar
+   * para garantizar que siempre se guarden datos actualizados
    */
   const saveInvoiceToServer = async (pdfBlob) => {
     try {
       setIsSaving(true);
+
+      // 🔒 CRÍTICO: Leer items y totales AHORA desde el store
+      // No confiar en las props (pueden estar desactualizadas por race condition)
+      const currentItems = getCart();
+      const currentTotals = getCartTotals(customerInfo, true);
+
+      // ✅ VALIDACIÓN: Detectar desincronización entre props y store
+      const itemsDiff = Math.abs(currentItems.length - items.length);
+      const totalsDiff = Math.abs(currentTotals.total_factura - (totals.total_factura || 0));
+
+      if (itemsDiff > 0 || totalsDiff > 1) {
+        console.error('❌ DESINCRONIZACIÓN DETECTADA:', {
+          propsItems: items.length,
+          storeItems: currentItems.length,
+          propsTotals: totals.total_factura,
+          storeTotals: currentTotals.total_factura,
+          diff: totalsDiff
+        });
+        toast.error('Error: Datos desactualizados. Por favor recarga la página.');
+        setIsSaving(false);
+        return;
+      }
 
       // Convertir blob a base64
       const reader = new FileReader();
@@ -136,9 +163,8 @@ const InvoiceDownload = ({
       reader.onload = async () => {
         const pdfBase64 = reader.result;
 
-        // Preparar datos de items para guardar en JSONB
-        // Estructura: [{ id, product_id, tag, name, color, size, quantity, price, discount, total, product_img, sku, isPreOrder }, ...]
-        const itemsData = items.map(item => {
+        // Preparar datos de items desde currentItems (store actual)
+        const itemsData = currentItems.map(item => {
           const single_price = Number(item.price);
           const discountFactor = 1 - Number(item.discount) / 100;
           const total = (item.quantity * single_price * discountFactor).toFixed(2);
@@ -160,20 +186,23 @@ const InvoiceDownload = ({
           };
         });
 
-        // Preparar datos de factura
+        // Separar preorders desde currentItems
+        const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
+
+        // Preparar datos de factura usando currentTotals (store actual)
         const invoiceData = {
           company_name: customerInfo.fiscal_name,
           nif_cif: customerInfo.nif_cif,
           address: customerInfo.address,
           country: customerInfo.country || 'ES',
-          items_count: items.length,
+          items_count: currentItems.length,
           items_data: itemsData,
-          total_amount_eur: totals.total_factura || 0,
-          vat_amount: totals.iva || 0,
+          total_amount_eur: currentTotals.total_factura || 0,
+          vat_amount: currentTotals.iva || 0,
           surcharge_applied: !!customerInfo.isRecharge,
-          surcharge_amount: totals.recargo || 0,
-          shipping_amount: totals.shipping || 0,
-          is_preorder: preOrderItems.length > 0,
+          surcharge_amount: currentTotals.recargo || 0,
+          shipping_amount: currentTotals.shipping || 0,
+          is_preorder: currentPreOrderItems.length > 0,
           // Si estamos editando, pasar el ID de la factura original
           previous_invoice_id: isEditingMode ? editingInvoiceId : null,
           // Incluir número de Shopify si existe
