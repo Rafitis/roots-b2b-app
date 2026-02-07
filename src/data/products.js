@@ -28,6 +28,10 @@ export const SHOES_DATA = {
     "name": "Roots Explorer Oliva",
     "price": 59.90,
   },
+  14794855448907: {
+    "name": "Roots Explorer Terracota",
+    "price": 59.90,
+  },
   10338027995467: {
     "name": "Roots Platillas Warmer",
     "price": 3.99,
