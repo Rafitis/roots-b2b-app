@@ -198,16 +198,20 @@ export function ProductCard({ product }) {
 }
 
 export function ProductsByTag({ catalog }) {
-  const grouped = catalog.reduce((acc, product) => {
-    product.tags.forEach(tag => {
-      if (!acc[tag]) acc[tag] = [];
-      acc[tag].push(product);
-    });
-    return acc;
-  }, {});
-  const orderedTags = Object.keys(grouped)
-    .filter(tag => tag.toLowerCase() !== 'bundle');
-  if (grouped['bundle']) orderedTags.push('bundle');
+  // Memoizar agrupación para evitar recálculos en cada render
+  const { grouped, orderedTags } = useMemo(() => {
+    const grouped = catalog.reduce((acc, product) => {
+      product.tags.forEach(tag => {
+        if (!acc[tag]) acc[tag] = [];
+        acc[tag].push(product);
+      });
+      return acc;
+    }, {});
+    const orderedTags = Object.keys(grouped)
+      .filter(tag => tag.toLowerCase() !== 'bundle');
+    if (grouped['bundle']) orderedTags.push('bundle');
+    return { grouped, orderedTags };
+  }, [catalog]);
 
   return (
     <div>
