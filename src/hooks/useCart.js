@@ -86,8 +86,13 @@ export function addToCart({ tag, product, quantity, variant, isPreOrder }) {
   const productAlreadyAdded = cart.find((item) => item.id === key);
 
   if (productAlreadyAdded) {
-    productAlreadyAdded.quantity += quantity;
-    itemsStore.set(cart);
+    // Actualización inmutable: crear nuevo array con el item actualizado
+    const newCart = cart.map(item =>
+      item.id === key
+        ? { ...item, quantity: item.quantity + quantity }
+        : item
+    );
+    itemsStore.set(newCart);
     updateCartDiscount(tag, product.ID_producto);
     return;
   }
@@ -120,8 +125,13 @@ export function addToCart_OLD({ tag, product, quantity, size, color }) {
   const productAlreadyAdded = cart.find((item) => item.id === key);
 
   if (productAlreadyAdded) {
-    productAlreadyAdded.quantity += quantity;
-    itemsStore.set(cart);
+    // Actualización inmutable: crear nuevo array con el item actualizado
+    const newCart = cart.map(item =>
+      item.id === key
+        ? { ...item, quantity: item.quantity + quantity }
+        : item
+    );
+    itemsStore.set(newCart);
     updateCartDiscount(tag, product.product_id);
     return;
   }
