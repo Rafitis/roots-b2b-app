@@ -39,25 +39,37 @@ export function ProductCard({ product }) {
 
   // IntersectionObserver para activar animación al hacer scroll
   useEffect(() => {
-    if (!ref.current) return;
+    const node = ref.current; // Capturar referencia para evitar null en cleanup
+    if (!node) return;
+
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setInView(true);
-          obs.unobserve(ref.current);
+          obs.unobserve(node);
         }
       },
       { threshold: 0.1 }
     );
-    obs.observe(ref.current);
+    obs.observe(node);
     return () => obs.disconnect();
   }, []);
 
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [quantity, setQuantity] = useState(1);
 
-  const isPreOrder = product.tags.some(tag => tag.toLowerCase() === 'preventa');
-  const isReservaB2B = product.tags.some(tag => tag.toLowerCase() === 'reserva b2b');
+  // Una sola iteración para detectar ambos flags
+  const { isPreOrder, isReservaB2B } = useMemo(() => {
+    let isPreOrder = false;
+    let isReservaB2B = false;
+    for (const tag of product.tags) {
+      const lower = tag.toLowerCase();
+      if (lower === 'preventa') isPreOrder = true;
+      if (lower === 'reserva b2b') isReservaB2B = true;
+      if (isPreOrder && isReservaB2B) break;
+    }
+    return { isPreOrder, isReservaB2B };
+  }, [product.tags]);
 
   // Calcular precios como valores derivados (sin useState + useEffect)
   const { totalPrice, unitPrice } = useMemo(() => {
