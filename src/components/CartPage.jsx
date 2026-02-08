@@ -1,9 +1,11 @@
 // src/components/CartPage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
-import InvoiceDownload from "@components/invoice/InvoiceDownload";
 import SummaryCheckout from "@components/SummaryCheckout";
+
+// Lazy load: @react-pdf/renderer es ~500KB, solo cargarlo cuando se necesite
+const InvoiceDownload = lazy(() => import("@components/invoice/InvoiceDownload"));
 import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, addToCartMultiple, useCartItems, useCartTotals } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
@@ -207,15 +209,17 @@ const CartPage = ({ DNI, IBAN}) => {
       <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
       <SummaryCheckout customerInfo={customerInfo} />
       <div className="flex justify-between">
-        <InvoiceDownload
-          items={cartItems}
-          customerInfo={customerInfo}
-          dni={DNI}
-          iban={IBAN}
-          totals={totals}
-          isEditingMode={isEditingMode}
-          editingInvoiceId={editingInvoiceId}
+        <Suspense fallback={<button className="btn btn-primary btn-disabled">Cargando...</button>}>
+          <InvoiceDownload
+            items={cartItems}
+            customerInfo={customerInfo}
+            dni={DNI}
+            iban={IBAN}
+            totals={totals}
+            isEditingMode={isEditingMode}
+            editingInvoiceId={editingInvoiceId}
           />
+        </Suspense>
         <button className="btn btn-error btn-md hover:scale-105 text-primary" onClick={handleDeleteAll}>
           {t('global.delete')}
         </button>
