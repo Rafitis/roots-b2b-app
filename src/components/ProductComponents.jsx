@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { addToCart, calculateDiscount } from '@hooks/useCart';
 import toast, { Toaster } from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
@@ -55,20 +55,21 @@ export function ProductCard({ product }) {
 
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [quantity, setQuantity] = useState(1);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [unitPrice, setUnitPrice] = useState(selectedVariant?.precio ?? 0);
 
   const isPreOrder = product.tags.some(tag => tag.toLowerCase() === 'preventa');
   const isReservaB2B = product.tags.some(tag => tag.toLowerCase() === 'reserva b2b');
 
-  useEffect(() => {
-    if (!selectedVariant) return;
+  // Calcular precios como valores derivados (sin useState + useEffect)
+  const { totalPrice, unitPrice } = useMemo(() => {
+    if (!selectedVariant) return { totalPrice: 0, unitPrice: '0.00' };
     const price = Number(selectedVariant.precio);
     const discount = calculateDiscount(product.tags[0], quantity);
     const factor = 1 - discount / 100;
-    setTotalPrice(quantity * price * factor);
-    setUnitPrice((price * factor).toFixed(2));
-  }, [selectedVariant, quantity]);
+    return {
+      totalPrice: quantity * price * factor,
+      unitPrice: (price * factor).toFixed(2)
+    };
+  }, [selectedVariant, quantity, product.tags]);
 
   const handleQuantityChange = e => {
     let val = parseInt(e.target.value, 10) || 1;
