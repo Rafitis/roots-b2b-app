@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import InvoiceFilters from './InvoiceFilters';
 import InvoiceTable from './InvoiceTable';
 
@@ -345,10 +345,7 @@ export default function AdminInvoices() {
   };
 
   return (
-    <>
-      <Toaster position="bottom-center" reverseOrder={false} />
-
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Filtros */}
         <InvoiceFilters
           filters={filters}
@@ -389,7 +386,6 @@ export default function AdminInvoices() {
             </div>
           </div>
         )}
-      </div>
-    </>
+    </div>
   );
 }

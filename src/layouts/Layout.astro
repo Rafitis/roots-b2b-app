@@ -3,6 +3,7 @@ import "@styles/global.css";
 import Footer from "@components/Footer.astro";
 import AnimatedLogo from '../components/AnimatedLogo.jsx';
 import Header from '../components/Header.jsx';
+import GlobalToaster from '../components/GlobalToaster.jsx';
 
 export interface Props {
   cartCount?: number;
@@ -40,6 +41,9 @@ const pathname = Astro.url.pathname; // '/cart', '/products', etc.
 
     <!-- Footer opcional -->
     <Footer class="bg-gray-800 text-white py-4" />
+
+    <!-- Toast notifications global -->
+    <GlobalToaster client:only="react" />
   </body>
 </html>
 <style is:global>

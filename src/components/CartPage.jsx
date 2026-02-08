@@ -9,7 +9,7 @@ const InvoiceDownload = lazy(() => import("@components/invoice/InvoiceDownload")
 import {updateCartQuantity, updateCartDiscount, removeFromCart, removeAllFromCart, addToCartMultiple, useCartItems, useCartTotals } from "@hooks/useCart"
 import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const CartPage = ({ DNI, IBAN}) => {
   const { currentLang } = useI18n();
@@ -178,8 +178,6 @@ const CartPage = ({ DNI, IBAN}) => {
 
   return (
     <div>
-      <Toaster position="bottom-center" reverseOrder={false} />
-
       {/* Banner de modo edición */}
       {isEditingMode && (
         <div className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 rounded">

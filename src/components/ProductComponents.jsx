@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { addToCart, calculateDiscount } from '@hooks/useCart';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
 
@@ -215,7 +215,6 @@ export function ProductsByTag({ catalog }) {
 
   return (
     <div>
-      <Toaster position="bottom-center" reverseOrder={false} />
       {orderedTags.map(tag => (
         <section key={tag} className="mb-20 animate-fade-in-up">
           <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>

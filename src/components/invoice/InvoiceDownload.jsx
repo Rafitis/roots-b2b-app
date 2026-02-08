@@ -13,7 +13,7 @@ import ErrorBoundary from '@components/errors/ErrorBoundary';
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from '@hooks/useI18n';
 import { getCart, getCartTotals } from '@hooks/useCart';
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 // Estilo mínimo para la página de fallback
 const fallbackStyles = StyleSheet.create({
@@ -315,9 +315,7 @@ const InvoiceDownload = ({
   };
 
   return (
-    <>
-      <Toaster position="bottom-center" reverseOrder={false} />
-      <ErrorBoundary>
+    <ErrorBoundary>
         <PDFDownloadLink
           key={`${regularItems.length}-${preOrderItems.length}`}
           document={
@@ -344,8 +342,7 @@ const InvoiceDownload = ({
                 : t('download.message');
             }}
         </PDFDownloadLink>
-      </ErrorBoundary>
-    </>
+    </ErrorBoundary>
   );
 };
 
