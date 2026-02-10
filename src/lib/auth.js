@@ -10,6 +10,65 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+/**
+ * Verifica si el usuario actual es admin basado en las cookies
+ * Para uso en componentes de servidor (Astro)
+ *
+ * @param {Request} request - El objeto request de Astro
+ * @returns {Promise<boolean>} true si el usuario es admin
+ */
+export async function isUserAdmin(request) {
+  try {
+    // Obtener token de las cookies
+    const cookieHeader = request.headers.get('cookie') || '';
+    const tokenMatch = cookieHeader.match(/sb-access-token=([^;]+)/);
+
+    if (!tokenMatch) {
+      return false;
+    }
+
+    const accessToken = tokenMatch[1];
+
+    // Obtener usuario
+    const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return false;
+    }
+
+    // Verificar admin con RPC (consistente con middleware)
+    const { data: profile, error: rpcError } = await supabase
+      .rpc('get_user_profile', { user_id: user.id });
+
+    if (profile && profile.is_admin === true) {
+      return true;
+    }
+
+    // Fallback: tabla profiles directamente
+    if (rpcError) {
+      const { data: directProfile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      if (directProfile && directProfile.is_admin === true) {
+        return true;
+      }
+    }
+
+    // Último recurso: user_metadata
+    if (user.user_metadata?.is_admin === true) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error verificando admin:', error);
+    return false;
+  }
+}
+
 export const post = async ({ request }) => {
   const formData = await request.formData();
   const email = formData.get('email')?.toString();

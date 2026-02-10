@@ -4,6 +4,7 @@ import Footer from "@components/Footer.astro";
 import AnimatedLogo from '../components/AnimatedLogo.jsx';
 import Header from '../components/Header.jsx';
 import GlobalToaster from '../components/GlobalToaster.jsx';
+import { isUserAdmin } from '../lib/auth.js';
 
 export interface Props {
   cartCount?: number;
@@ -12,7 +13,10 @@ export interface Props {
 }
 
 const { title, currentLocale } = Astro.props;
-const pathname = Astro.url.pathname; // '/cart', '/products', etc.
+const pathname = Astro.url.pathname;
+
+// Verificar si el usuario es admin en el servidor (evita flash en Header)
+const isAdmin = await isUserAdmin(Astro.request);
 ---
 <!DOCTYPE html>
 <html lang={currentLocale}>
@@ -21,6 +25,10 @@ const pathname = Astro.url.pathname; // '/cart', '/products', etc.
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon_roots.webp" />
 		<title>{title}</title>
+		<!-- Inyectar estado inicial para evitar flash en componentes React -->
+		<script define:vars={{ isAdmin }}>
+			window.__ROOTS_INITIAL_STATE__ = { isAdmin };
+		</script>
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Logo animado -->

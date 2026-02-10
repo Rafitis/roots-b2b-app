@@ -18,30 +18,16 @@ export default function Header({ showLogo }) {
 
   const cartCount = useStore(cartCountStore)
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Leer isAdmin del estado inyectado por el servidor (sin fetch, sin flash)
+  const isAdmin = typeof window !== 'undefined'
+    ? window.__ROOTS_INITIAL_STATE__?.isAdmin || false
+    : false;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        // Siempre verificar en el servidor (sin cachear)
-        // Esto asegura que los cambios de usuario se reflejen inmediatamente
-        const response = await fetch('/api/user/is-admin');
-        const data = await response.json();
-        const adminStatus = data.isAdmin || false;
-        setIsAdmin(adminStatus);
-      } catch (err) {
-        console.error('Error checking admin status:', err);
-        setIsAdmin(false);
-      }
-    };
-    checkAdmin();
   }, []);
   // Handler para cerrar sesión
   const handleLogout = async () => {
