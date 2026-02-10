@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { addToCart, calculateDiscount } from '@hooks/useCart';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
 
@@ -39,36 +39,49 @@ export function ProductCard({ product }) {
 
   // IntersectionObserver para activar animación al hacer scroll
   useEffect(() => {
-    if (!ref.current) return;
+    const node = ref.current; // Capturar referencia para evitar null en cleanup
+    if (!node) return;
+
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setInView(true);
-          obs.unobserve(ref.current);
+          obs.unobserve(node);
         }
       },
       { threshold: 0.1 }
     );
-    obs.observe(ref.current);
+    obs.observe(node);
     return () => obs.disconnect();
   }, []);
 
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [quantity, setQuantity] = useState(1);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [unitPrice, setUnitPrice] = useState(selectedVariant?.precio ?? 0);
 
-  const isPreOrder = product.tags.some(tag => tag.toLowerCase() === 'preventa');
-  const isReservaB2B = product.tags.some(tag => tag.toLowerCase() === 'reserva b2b');
+  // Una sola iteración para detectar ambos flags
+  const { isPreOrder, isReservaB2B } = useMemo(() => {
+    let isPreOrder = false;
+    let isReservaB2B = false;
+    for (const tag of product.tags) {
+      const lower = tag.toLowerCase();
+      if (lower === 'preventa') isPreOrder = true;
+      if (lower === 'reserva b2b') isReservaB2B = true;
+      if (isPreOrder && isReservaB2B) break;
+    }
+    return { isPreOrder, isReservaB2B };
+  }, [product.tags]);
 
-  useEffect(() => {
-    if (!selectedVariant) return;
+  // Calcular precios como valores derivados (sin useState + useEffect)
+  const { totalPrice, unitPrice } = useMemo(() => {
+    if (!selectedVariant) return { totalPrice: 0, unitPrice: '0.00' };
     const price = Number(selectedVariant.precio);
     const discount = calculateDiscount(product.tags[0], quantity);
     const factor = 1 - discount / 100;
-    setTotalPrice(quantity * price * factor);
-    setUnitPrice((price * factor).toFixed(2));
-  }, [selectedVariant, quantity]);
+    return {
+      totalPrice: quantity * price * factor,
+      unitPrice: (price * factor).toFixed(2)
+    };
+  }, [selectedVariant, quantity, product.tags]);
 
   const handleQuantityChange = e => {
     let val = parseInt(e.target.value, 10) || 1;
@@ -197,20 +210,23 @@ export function ProductCard({ product }) {
 }
 
 export function ProductsByTag({ catalog }) {
-  const grouped = catalog.reduce((acc, product) => {
-    product.tags.forEach(tag => {
-      if (!acc[tag]) acc[tag] = [];
-      acc[tag].push(product);
-    });
-    return acc;
-  }, {});
-  const orderedTags = Object.keys(grouped)
-    .filter(tag => tag.toLowerCase() !== 'bundle');
-  if (grouped['bundle']) orderedTags.push('bundle');
+  // Memoizar agrupación para evitar recálculos en cada render
+  const { grouped, orderedTags } = useMemo(() => {
+    const grouped = catalog.reduce((acc, product) => {
+      product.tags.forEach(tag => {
+        if (!acc[tag]) acc[tag] = [];
+        acc[tag].push(product);
+      });
+      return acc;
+    }, {});
+    const orderedTags = Object.keys(grouped)
+      .filter(tag => tag.toLowerCase() !== 'bundle');
+    if (grouped['bundle']) orderedTags.push('bundle');
+    return { grouped, orderedTags };
+  }, [catalog]);
 
   return (
     <div>
-      <Toaster position="bottom-center" reverseOrder={false} />
       {orderedTags.map(tag => (
         <section key={tag} className="mb-20 animate-fade-in-up">
           <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>
