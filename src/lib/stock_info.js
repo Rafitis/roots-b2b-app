@@ -1,13 +1,20 @@
 
 import { EXCLUDE_ID_PROUDUCTS, SHOES_DATA } from "@data/products.js";
 import { productsName } from "@i18n/ui";
+import { createClient } from '@supabase/supabase-js';
 
 const API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
 const API_VERSION = "2025-04";
+const SUPABASE_URL = import.meta.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_KEY;
 
 /**
  * Función que obtiene todos los productos de la tienda utilizando paginación simple.
+ * 
+ * @deprecated Esta función solo se usa en el endpoint de sync (/api/cron/sync-shopify)
+ * El catálogo cliente ahora lee desde Supabase vía getNestedCatalog()
+ * No eliminar hasta verificar que no hay dependencias ocultas
  */
 async function getAllProducts() {
   let todosLosProductos = [];
@@ -58,6 +65,10 @@ async function getAllProducts() {
  * Se asume que:
  * - `option1` representa el color.
  * - `option2` representa la talla.
+ * 
+ * @deprecated Esta función solo se usaba con getAllProducts()
+ * Ya no se llama desde el catálogo cliente
+ * No eliminar hasta verificar que no hay dependencias ocultas
  */
 function extractProductsInfo(products) {
   const productsInfo = [];
@@ -111,6 +122,9 @@ function extractProductsInfo(products) {
 /**
  * Función principal que orquesta la obtención de productos,
  * extrae la información requerida y filtra aquellos productos que tienen un SKU asignado.
+ * 
+ * @deprecated CÓDIGO MUERTO - No tiene consumidores en el código actual
+ * Candidato a eliminación en el futuro (verificar con búsqueda global primero)
  */
 export async function getProductsBySKU() {
   const products = await getAllProducts();
@@ -118,6 +132,11 @@ export async function getProductsBySKU() {
   return productsInfo.filter(p => p.SKU);
 }
 
+/**
+ * @deprecated Esta función usaba SHOES_DATA (hardcoded)
+ * Ahora getNestedCatalog() lee price_override desde Supabase
+ * Mantener por si hay dependencias ocultas
+ */
 const getProductPrice = (product) => {
   // Se calcula el precio sin IVA.
   if (SHOES_DATA[product.id]) {
@@ -139,73 +158,93 @@ export function translateProducts(products, currentLang) {
   }));
 }
 
+/**
+ * Obtiene el catálogo completo desde Supabase (productos + variantes)
+ * con los overrides del admin aplicados
+ * 
+ * Reemplaza las llamadas en vivo a Shopify por lectura de la DB
+ * que se sincroniza cada hora vía cron
+ */
 export async function getNestedCatalog() {
   try {
-    const products = await getAllProducts();  // de tu función previa
+    // Crear cliente Supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Validar que tenemos un array
-    if (!Array.isArray(products)) {
-      console.error('Error: getAllProducts() no retornó un array', products);
-      return {};
+    // Obtener productos con variantes desde Supabase
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        shopify_product_id,
+        shopify_name,
+        display_name,
+        tags,
+        imagen,
+        shopify_price,
+        price_override,
+        is_visible,
+        link_a_shopify,
+        product_variants (
+          shopify_variant_id,
+          sku,
+          talla,
+          color,
+          precio,
+          stock_actual
+        )
+      `)
+      .eq('is_visible', true)
+      .order('shopify_name', { ascending: true });
+
+    if (error) {
+      console.error('[getNestedCatalog] Error fetching from Supabase:', error);
+      return [];
     }
 
-    const filteredProducts = products.filter(p => {
-      // Excluir por ID
-      if (EXCLUDE_ID_PROUDUCTS.includes(p.id)) return false;
+    if (!Array.isArray(products)) {
+      console.error('[getNestedCatalog] Expected array, got:', products);
+      return [];
+    }
 
-      // Si no hay tags, lo dejamos pasar
-      if (!p.tags) return true;
+    // Filtrar productos con lógica de negocio
+    const filteredProducts = products.filter(product => {
+      // Excluir productos con tag "bundle" (lógica de negocio)
+      if (!product.tags || product.tags.length === 0) return true;
 
-      // Spliteamos y normalizamos
-      const tagsArray = p.tags
-        .split(',')
-        .map(t => t.trim().toLowerCase());
-
-      // Excluir si incluye "bundle"
-      return !tagsArray.includes('bundle');
+      const tagsLower = product.tags.map(t => t.toLowerCase());
+      return !tagsLower.includes('bundle');
     });
 
+    // Mapear a formato esperado por los componentes
     const catalog = filteredProducts.map(product => {
-      // Desestructuramos lo que nos interesa del producto
-      const {
-        id: ID_producto,
-        title: nombre,
-        tags,
-        handle,
-        image,
-        published_at,
-        variants
-      } = product;
+      // Aplicar overrides de admin
+      const nombre = product.display_name || product.shopify_name;
+      
+      // Calcular precio: usar price_override si existe, sino shopify_price
+      // Ambos vienen CON IVA, dividir por 1.21 para obtener precio sin IVA
+      const precioBase = product.price_override || product.shopify_price || 0;
+      const precioSinIVA = (parseFloat(precioBase) / 1.21).toFixed(2);
 
       return {
-        ID_producto,
-        nombre,
-        tags: tags ? tags.split(',').map(t => t.trim()) : [],
-        imagen: image ? image.src : null,
-        link_a_shopify: `https://${SHOPIFY_URL}/products/${handle}`,
-        status: published_at ? "active" : "inactive",
-        variants: variants.map(variant => {
-          let v_talla = variant.option2
-          let v_color = variant.option1
-          if (/\d/.test(variant.option1)){
-            v_color = variant.option2
-            v_talla = variant.option1
-          }
-          return ({
-          ID_sku:       variant.id,
-          SKU:          variant.sku,
-          talla:        v_talla,
-          color:        v_color,
-          precio:       getProductPrice(product),
-          stock_actual: variant.inventory_quantity || 0
-        })})
+        ID_producto: product.shopify_product_id,
+        nombre: nombre,
+        tags: product.tags || [],
+        imagen: product.imagen,
+        link_a_shopify: product.link_a_shopify,
+        status: 'active', // Todos los productos en Supabase son activos (filtrados en el sync)
+        variants: (product.product_variants || []).map(variant => ({
+          ID_sku: variant.shopify_variant_id,
+          SKU: variant.sku,
+          talla: variant.talla,
+          color: variant.color,
+          precio: precioSinIVA, // Precio del producto aplicado a todas las variantes
+          stock_actual: variant.stock_actual || 0
+        }))
       };
     });
 
     return catalog;
   } catch (error) {
-    console.error('Error en getNestedCatalog():', error);
-    // Retornar objeto vacío en lugar de fallar
-    return {};
+    console.error('[getNestedCatalog] Error general:', error);
+    return [];
   }
 }
