@@ -1,14 +1,9 @@
 /**
  * InvoiceFilters - Panel de filtros de búsqueda
- *
- * Permite filtrar por:
- * - Rango de fechas
- * - NIF/CIF
- * - Nombre de empresa
- * - Estado
  */
 
 import React, { useState } from 'react';
+import { Search, X } from 'lucide-react';
 
 export default function InvoiceFilters({ filters, onApply, onClear, disabled }) {
   const [localFilters, setLocalFilters] = useState(filters);
@@ -36,81 +31,76 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
     onClear();
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleApply();
+  };
+
   const hasActiveFilters = Object.values(localFilters).some(v => v !== '');
 
+  const inputClasses = "w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-md focus:border-roots-clay focus:outline-none disabled:bg-base-200 disabled:cursor-not-allowed transition-colors";
+
   return (
-    <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">🔍 Filtros de búsqueda</h2>
+    <div className="card-b2b p-5">
+      <h2 className="text-sm font-semibold text-roots-bark mb-4">Filtros de búsqueda</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Fecha desde */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Desde (Fecha)
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">Desde (Fecha)</label>
           <input
             type="date"
             value={localFilters.date_from}
             onChange={(e) => handleInputChange('date_from', e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={inputClasses}
           />
         </div>
 
-        {/* Fecha hasta */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Hasta (Fecha)
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">Hasta (Fecha)</label>
           <input
             type="date"
             value={localFilters.date_to}
             onChange={(e) => handleInputChange('date_to', e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={inputClasses}
           />
         </div>
 
-        {/* NIF/CIF */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            NIF/CIF
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">NIF/CIF</label>
           <input
             type="text"
             placeholder="Ej: 12345678A"
             value={localFilters.nif}
             onChange={(e) => handleInputChange('nif', e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={inputClasses}
           />
         </div>
 
-        {/* Nombre de empresa */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre de Empresa
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">Nombre de Empresa</label>
           <input
             type="text"
             placeholder="Ej: Acme Corp"
             value={localFilters.company}
             onChange={(e) => handleInputChange('company', e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={inputClasses}
           />
         </div>
 
-        {/* Estado */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Estado
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">Estado</label>
           <select
             value={localFilters.status}
             onChange={(e) => handleInputChange('status', e.target.value)}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={inputClasses}
           >
             <option value="">Todos</option>
             <option value="draft">Borrador</option>
@@ -121,37 +111,36 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
         </div>
       </div>
 
-      {/* Botones de acción */}
-      <div className="flex gap-3 mt-6">
+      <div className="flex items-center gap-3 mt-5">
         <button
           onClick={handleApply}
           disabled={disabled}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition font-medium"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium btn btn-primary btn-sm"
         >
-          🔎 Buscar
+          <Search className="w-3.5 h-3.5" />
+          Buscar
         </button>
         <button
           onClick={handleClear}
           disabled={disabled || !hasActiveFilters}
-          className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed transition font-medium"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-roots-earth border border-base-300 rounded-md hover:bg-base-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          ✕ Limpiar
+          <X className="w-3.5 h-3.5" />
+          Limpiar
         </button>
       </div>
 
-      {/* Resumen de filtros activos */}
       {hasActiveFilters && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-gray-600">
-            <strong>Filtros activos:</strong> {
-              [
-                localFilters.date_from && `Desde ${localFilters.date_from}`,
-                localFilters.date_to && `hasta ${localFilters.date_to}`,
-                localFilters.nif && `NIF: ${localFilters.nif}`,
-                localFilters.company && `Empresa: ${localFilters.company}`,
-                localFilters.status && `Estado: ${localFilters.status}`
-              ].filter(Boolean).join(' | ')
-            }
+        <div className="mt-4 px-3 py-2 bg-base-200/60 border border-base-300/40 rounded-md">
+          <p className="text-xs text-roots-earth">
+            <span className="font-medium">Filtros activos:</span>{' '}
+            {[
+              localFilters.date_from && `Desde ${localFilters.date_from}`,
+              localFilters.date_to && `hasta ${localFilters.date_to}`,
+              localFilters.nif && `NIF: ${localFilters.nif}`,
+              localFilters.company && `Empresa: ${localFilters.company}`,
+              localFilters.status && `Estado: ${localFilters.status}`
+            ].filter(Boolean).join(' | ')}
           </p>
         </div>
       )}

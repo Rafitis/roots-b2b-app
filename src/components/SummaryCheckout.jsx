@@ -6,20 +6,35 @@ export default function SummaryCheckout({ customerInfo }) {
     const { currentLang } = useI18n();
     const t = useTranslations(currentLang);
 
-    // ✅ NUEVO: Usar hook reactivo y memoizado (solución al bug de race condition)
-    // Lee directamente del store, siempre actualizado
     const { total_sin_iva, iva, recargo, shipping, total_factura: total_factura_envio, vatRate } = useCartTotals(customerInfo, true);
+
     return (
-        <div className="flex justify-end m-20 px-20">
-            <div className="flex flex-col gap-2 w-1/5">
-                <div className="flex text-xs font-bold justify-between">{t('invoice.total.totalNoTax')}: <span className="flex">{total_sin_iva.toFixed(2)} €</span></div>
-                <div className="flex text-xs font-bold justify-between">{t('invoice.total.iva')} ({vatRate}%): <span className="flex">{iva.toFixed(2)} €</span></div>
+        <div className="flex justify-end py-8 px-4 md:px-0">
+            <div className="w-full max-w-xs space-y-2">
+                <div className="flex items-center justify-between text-sm text-roots-earth">
+                    <span>{t('invoice.total.totalNoTax')}</span>
+                    <span className="tabular-nums font-medium">{total_sin_iva.toFixed(2)} €</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-roots-earth">
+                    <span>{t('invoice.total.iva')} ({vatRate}%)</span>
+                    <span className="tabular-nums font-medium">{iva.toFixed(2)} €</span>
+                </div>
                 {customerInfo.isRecharge && (
-                <div className="flex text-xs font-bold justify-between">{t('invoice.total.recharge')}: <span className="flex">{recargo.toFixed(2)} €</span></div>
+                    <div className="flex items-center justify-between text-sm text-roots-earth">
+                        <span>{t('invoice.total.recharge')}</span>
+                        <span className="tabular-nums font-medium">{recargo.toFixed(2)} €</span>
+                    </div>
                 )}
-                <div className="flex text-xs font-bold justify-between">{t('invoice.total.shipping').toUpperCase()}: <span className="flex">{shipping.toFixed(2)} €</span></div>
-                <div className="divider"></div>
-                <div className="flex text-lg font-bold justify-between">{t('invoice.total.total')}: <span className="flex">{total_factura_envio.toFixed(2)} €</span></div>
+                <div className="flex items-center justify-between text-sm text-roots-earth">
+                    <span>{t('invoice.total.shipping').toUpperCase()}</span>
+                    <span className="tabular-nums font-medium">{shipping.toFixed(2)} €</span>
+                </div>
+                <div className="border-t border-base-300/60 pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-base font-bold text-roots-bark">{t('invoice.total.total')}</span>
+                        <span className="text-lg font-bold text-roots-bark tabular-nums">{total_factura_envio.toFixed(2)} €</span>
+                    </div>
+                </div>
             </div>
         </div>
     );

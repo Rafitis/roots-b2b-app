@@ -371,17 +371,21 @@ export default function AdminInvoices() {
 
         {/* Acciones de bulk */}
         {selectedInvoices.size > 0 && (
-          <div className="sticky bottom-4 bg-white rounded-lg shadow-lg p-4 border border-blue-200">
+          <div className="sticky bottom-4 card-b2b p-4 shadow-lifted">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-roots-bark">
                 {selectedInvoices.size} factura(s) seleccionada(s)
               </p>
               <button
                 onClick={handleBulkDownload}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+                className="btn btn-primary btn-sm"
               >
-                {loading ? '⏳ Descargando...' : `📥 Descargar ${selectedInvoices.size}`}
+                {loading ? (
+                  <><span className="loading loading-spinner loading-xs"></span> Descargando...</>
+                ) : (
+                  <>Descargar {selectedInvoices.size}</>
+                )}
               </button>
             </div>
           </div>

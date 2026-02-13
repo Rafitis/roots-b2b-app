@@ -12,18 +12,17 @@ export function VariationOption({ variant, isSelected, onSelect, isPreOrder, isR
     <button
       type="button"
       onClick={() => onSelect(variant)}
+      disabled={isOutOfStock}
       className={[
-        'relative px-3 py-1 border rounded-md m-1 transition overflow-hidden',
-        isSelected ? 'border-primary' : 'border-gray-200',
-        isOutOfStock ? 'text-gray-300 line-through' : 'hover:border-gray-700'
+        'relative px-2.5 py-1 text-sm border rounded transition-all duration-150',
+        isSelected
+          ? 'border-roots-bark bg-roots-bark text-roots-sand font-medium'
+          : isOutOfStock
+            ? 'border-base-300 text-base-300 cursor-not-allowed line-through'
+            : 'border-base-300 text-roots-earth hover:border-roots-clay hover:text-roots-bark',
       ].join(' ')}
     >
-      <span className="relative z-10">{label}{isOutOfStock}</span>
-      {isOutOfStock && (
-        <span
-          className="absolute inset-0"
-        />
-      )}
+      {label}
     </button>
   );
 }
@@ -37,9 +36,8 @@ export function ProductCard({ product }) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
 
-  // IntersectionObserver para activar animación al hacer scroll
   useEffect(() => {
-    const node = ref.current; // Capturar referencia para evitar null en cleanup
+    const node = ref.current;
     if (!node) return;
 
     const obs = new IntersectionObserver(
@@ -58,7 +56,6 @@ export function ProductCard({ product }) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [quantity, setQuantity] = useState(1);
 
-  // Una sola iteración para detectar ambos flags
   const { isPreOrder, isReservaB2B } = useMemo(() => {
     let isPreOrder = false;
     let isReservaB2B = false;
@@ -71,7 +68,6 @@ export function ProductCard({ product }) {
     return { isPreOrder, isReservaB2B };
   }, [product.tags]);
 
-  // Calcular precios como valores derivados (sin useState + useEffect)
   const { totalPrice, unitPrice } = useMemo(() => {
     if (!selectedVariant) return { totalPrice: 0, unitPrice: '0.00' };
     const price = Number(selectedVariant.precio);
@@ -111,43 +107,57 @@ export function ProductCard({ product }) {
     <div
       ref={ref}
       className={[
-        'relative max-w-sm bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col justify-between h-full',
-        'transition-all duration-700 ease-out',
-        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        'card-b2b flex flex-col justify-between h-full overflow-hidden',
+        'transition-all duration-500 ease-out',
+        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       ].join(' ')}
     >
-
-      {isPreOrder && (
-        <div className="absolute top-2 right-2 bg-yellow-300 text-xs font-semibold uppercase px-2 py-1 rounded z-10">
-          {t('product.preOrder')}
-        </div>
-      )}
-
-      <div>
-        {product.imagen && (
-          <img
-            src={product.imagen}
-            alt={product.nombre}
-            className="w-full h-auto object-cover mb-4"
-          />
-        )}
-        <h2 className="text-xl font-semibold mb-2">{product.nombre}</h2>
-
-        <div className="flex flex-wrap mb-2">
-          {product.tags.map(tag => (
-            <span
-              key={tag}
-              className="text-xs bg-gray-200 rounded-full px-2 py-1 mr-2 mb-2"
-            >
-              {tag.toUpperCase()}
+      {/* Image area */}
+      <div className="relative">
+        {isPreOrder && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider bg-warning text-warning-content rounded">
+              {t('product.preOrder')}
             </span>
-          ))}
+          </div>
+        )}
+
+        {product.imagen && (
+          <div className="aspect-square bg-base-200/50 overflow-hidden">
+            <img
+              src={product.imagen}
+              alt={product.nombre}
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-4 gap-3">
+        {/* Header: name + tags */}
+        <div>
+          <h2 className="text-base font-semibold text-roots-bark leading-snug mb-1.5">
+            {product.nombre}
+          </h2>
+          <div className="flex flex-wrap gap-1">
+            {product.tags.map(tag => (
+              <span
+                key={tag}
+                className="text-[10px] font-medium uppercase tracking-wider text-roots-clay bg-base-200 px-1.5 py-0.5 rounded"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
+        {/* Variants */}
         {product.variants?.length > 1 && (
-          <div className="mb-4">
-            <p className="font-medium mb-2">{t('product.variant')}:</p>
-            <div className="flex flex-wrap">
+          <div>
+            <p className="text-xs font-medium text-roots-earth mb-1.5">{t('product.variant')}:</p>
+            <div className="flex flex-wrap gap-1.5">
               {product.variants.map(variant => (
                 <VariationOption
                   key={variant.ID_sku}
@@ -161,78 +171,90 @@ export function ProductCard({ product }) {
             </div>
           </div>
         )}
-      </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-lg font-bold">€{totalPrice.toFixed(2)}</span>
-          <span className="text-sm">
-          {/* {isOutOfStock ? 'Sin stock' : `Stock: ${selectedVariant.stock_actual}`} */}
-          {isOutOfStock ? t('product.noStock') : ''}
-          </span>
-        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
 
-        {selectedVariant && (
-          <div className="flex items-center mb-4">
-            <label className="text-sm mr-2">{t('product.quantity')}:</label>
-            <input
-              type="number"
-              min="1"
-              {...(!isPreOrder && !isReservaB2B && selectedVariant
-                ? { max: selectedVariant.stock_actual }
-                : {})}
-              value={quantity}
-              onChange={handleQuantityChange}
-              className="w-16 border rounded p-1"
-            />
+        {/* Price + controls */}
+        <div className="space-y-2 pt-2 border-t border-base-300/40">
+          <div className="flex items-baseline justify-between">
+            <span className="text-lg font-bold text-roots-bark tabular-nums">
+              {totalPrice.toFixed(2)} €
+            </span>
+            <span className="text-xs text-roots-clay">
+              {isOutOfStock ? t('product.noStock') : ''}
+            </span>
           </div>
-        )}
 
-        <div className="w-full text-end mb-4">
-          <div className="stat-desc">*{t('product.pricePerUnit')}: €{unitPrice}</div>
+          {selectedVariant && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-roots-earth">{t('product.quantity')}:</label>
+                <input
+                  type="number"
+                  min="1"
+                  {...(!isPreOrder && !isReservaB2B && selectedVariant
+                    ? { max: selectedVariant.stock_actual }
+                    : {})}
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                  className="w-16 h-8 text-sm text-center border border-base-300 rounded bg-base-100 focus:border-roots-clay focus:outline-none transition-colors tabular-nums"
+                />
+              </div>
+              <div className="text-[11px] text-roots-clay text-right whitespace-nowrap">
+                *{t('product.pricePerUnit')}: {unitPrice} €
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className={[
+              'btn btn-sm w-full h-10 text-sm font-medium rounded transition-all duration-150',
+              isOutOfStock
+                ? 'btn-disabled bg-base-200 text-base-300 border-base-300'
+                : 'btn-primary hover:shadow-soft active:scale-[0.98]',
+            ].join(' ')}
+          >
+            {t('product.add')}
+          </button>
         </div>
-
-        <button
-          onClick={handleAddToCart}
-          disabled={isOutOfStock}
-          className={[
-            'btn btn-primary w-full py-2 rounded-md text-white text-lg transition',
-            isOutOfStock
-              ? 'text-gray-300 border-gray-200 cursor-not-allowed'
-              : 'bg-primary hover:scale-105',
-          ].join(' ')}
-        >
-          {t('product.add')}
-        </button>
       </div>
     </div>
   );
 }
 
 export function ProductsByTag({ catalog }) {
-  // Memoizar agrupación para evitar recálculos en cada render
-  const { grouped, orderedTags } = useMemo(() => {
-    const grouped = catalog.reduce((acc, product) => {
+  const grouped = useMemo(() => {
+    const groups = catalog.reduce((acc, product) => {
       product.tags.forEach(tag => {
         if (!acc[tag]) acc[tag] = [];
         acc[tag].push(product);
       });
       return acc;
     }, {});
-    const orderedTags = Object.keys(grouped)
+    const orderedTags = Object.keys(groups)
       .filter(tag => tag.toLowerCase() !== 'bundle');
-    if (grouped['bundle']) orderedTags.push('bundle');
-    return { grouped, orderedTags };
+    if (groups['bundle']) orderedTags.push('bundle');
+    return { groups, orderedTags };
   }, [catalog]);
 
   return (
-    <div>
-      {orderedTags.map(tag => (
-        <section key={tag} className="mb-20 animate-fade-in-up">
-          <h2 className="text-2xl font-bold mb-4 text-center">{tag.toUpperCase()}</h2>
-          <div className="divider"></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {grouped[tag].map(product => (
+    <div className="max-w-7xl mx-auto w-full space-y-16">
+      {grouped.orderedTags.map(tag => (
+        <section key={tag}>
+          <div className="flex items-center gap-4 mb-6">
+            <h2 className="text-xl font-bold text-roots-bark tracking-tight uppercase">
+              {tag}
+            </h2>
+            <div className="flex-1 h-px bg-base-300/60" />
+            <span className="text-xs text-roots-clay font-medium tabular-nums">
+              {grouped.groups[tag].length} {grouped.groups[tag].length === 1 ? 'producto' : 'productos'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {grouped.groups[tag].map(product => (
               <ProductCard key={product.ID_producto} product={product} />
             ))}
           </div>
