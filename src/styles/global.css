@@ -1,3 +1,53 @@
+@import "@fontsource-variable/figtree";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Smooth text rendering */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus ring style — warm, accessible */
+  *:focus-visible {
+    outline: 2px solid #8b7355;
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar subtle styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(61, 52, 40, 0.15);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(61, 52, 40, 0.25);
+  }
+}
+
+@layer components {
+  /* B2B-specific card surface */
+  .card-b2b {
+    @apply bg-base-100 border border-base-300/50 rounded-lg;
+    box-shadow: 0 1px 3px rgba(61, 52, 40, 0.06), 0 1px 2px rgba(61, 52, 40, 0.04);
+  }
+
+  /* Section headings with subtle underline */
+  .section-heading {
+    @apply text-lg font-semibold text-roots-bark tracking-tight pb-3 border-b border-base-300/60;
+  }
+
+  /* Form input override for consistency */
+  .input-b2b {
+    @apply input bg-base-100 border-base-300 focus:border-roots-clay focus:outline-none transition-colors;
+  }
+}

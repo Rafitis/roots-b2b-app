@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, LogOut, BarChart3 } from 'lucide-react';
+import { ShoppingCart, LogOut, BarChart3, Package } from 'lucide-react';
 import { useStore } from '@nanostores/react'
 import { cartCountStore } from '@hooks/useCart'
 
@@ -8,94 +8,119 @@ import { useTranslations } from '@i18n/utils';
 import { useI18n } from '@hooks/useI18n';
 
 /**
- * Header component for the e-commerce site.
- * Shows logo, navigation to products, cart icon, and logout button.
- * The logout button calls /api/auth/signout and redirects to /login.
-*/
-export default function Header({ showLogo }) {
+ * Header component for the B2B e-commerce site.
+ * Compact, professional header with warm brand colors.
+ */
+export default function Header() {
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
 
   const cartCount = useStore(cartCountStore)
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Leer isAdmin del estado inyectado por el servidor (sin fetch, sin flash)
   const isAdmin = typeof window !== 'undefined'
     ? window.__ROOTS_INITIAL_STATE__?.isAdmin || false
     : false;
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 0);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  // Handler para cerrar sesión
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/signout', { method: 'GET' });
-      // Redirigir al login
       window.location.href = '/signin';
     } catch (err) {
       console.error('Logout failed:', err);
     }
   };
 
+  const productsUrl = currentLang === 'en' ? '/en/main-view' : '/main-view';
+  const cartUrl = currentLang === 'en' ? '/en/carrito' : '/carrito';
+  const invoicesUrl = currentLang === 'en' ? '/en/admin/invoices' : '/admin/invoices';
+  const adminProductsUrl = currentLang === 'en' ? '/en/admin/products' : '/admin/products';
+
   return (
-    <header className={`fixed top-0 h-[90px] w-full z-50 px-6 py-4 flex items-center justify-between transition-colors animate-fade-in-up animate-duration-slow ${isScrolled ? 'bg-white shadow-md' : 'bg-[#faf6f4] shadow-none'
-      }`}>
-      {/* Logo and Home Link */}
-      <a href={currentLang === 'en' ? '/en/main-view' : '/main-view'} className="flex items-center">
-        <span className="text-lg font-bold text-gray-800 uppercase">Roots Barefoot</span>
-      </a>
-      {/* Logo */}
-      {showLogo ?
-        <img
-          src="/B2B_RootsBarefoot.png"
-          alt="Roots Barefoot Logo"
-          className="w-16 h-auto object-cover rounded-2xl items-center mx-auto justify-center flex"
-        />
-        : null}
-
-      {/* Navigation Links */}
-      <nav className="flex items-center space-x-6">
-          {isAdmin && (
-          <div className="tooltip" data-tip="Admin Dashboard">
-            <a
-              href={currentLang === 'en' ? '/en/admin/invoices' : '/admin/invoices'}
-              className="flex items-center text-gray-700 hover:text-gray-900"
-            >
-              <BarChart3 className="h-6 w-6" />
-            </a>
-          </div>
-        )}
-        <a href={currentLang === 'en' ? '/en/main-view' : '/main-view'} className="text-gray-700 hover:text-gray-900 font-medium">
-          {t('nav.products')}
-        </a>
-
-        <div className="tooltip" data-tip={t('nav.cart')}>
-        <a href={currentLang === 'en' ? '/en/carrito' : '/carrito'} className="relative text-gray-700 hover:text-gray-900">
-          <ShoppingCart className="h-6 w-6" />
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {cartCount}
+    <header
+      className={[
+        'fixed top-0 w-full z-50 transition-all duration-200 ease-out',
+        'px-6 lg:px-10',
+        isScrolled
+          ? 'h-16 bg-base-100/95 backdrop-blur-sm shadow-soft'
+          : 'h-20 bg-base-100',
+      ].join(' ')}
+    >
+      <div className="h-full max-w-7xl mx-auto flex items-center justify-between">
+        {/* Brand */}
+        <a href={productsUrl} className="flex items-center gap-3 group">
+          <div className="flex flex-col">
+            <span className="text-sm font-bold tracking-wide uppercase text-roots-bark leading-none">
+              Roots Barefoot
             </span>
-          )}
+            <span className="text-[10px] font-medium tracking-widest uppercase text-roots-clay leading-none mt-0.5">
+              B2B Portal
+            </span>
+          </div>
         </a>
-        </div>
 
-        <LanguagePicker />
+        {/* Navigation */}
+        <nav className="flex items-center gap-1">
+          {isAdmin && (
+            <>
+              <a
+                href={invoicesUrl}
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden md:inline">{t('nav.invoices') || 'Facturas'}</span>
+              </a>
+              <a
+                href={adminProductsUrl}
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+              >
+                <Package className="h-4 w-4" />
+                <span className="hidden md:inline">{t('nav.management') || 'Gestionar'}</span>
+              </a>
+              <div className="w-px h-5 bg-base-300 mx-1" />
+            </>
+          )}
 
-        <div className="tooltip" data-tip={t('nav.logout')}>
+          <a
+            href={productsUrl}
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+          >
+            {t('nav.products')}
+          </a>
+
+          <a
+            href={cartUrl}
+            className="relative flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span className="hidden md:inline">{t('nav.cart')}</span>
+            {cartCount > 0 && (
+              <span className="absolute -top-0.5 left-6 md:relative md:top-0 md:left-0 min-w-[18px] h-[18px] flex items-center justify-center bg-roots-bark text-roots-sand text-[10px] font-bold rounded-full px-1">
+                {cartCount}
+              </span>
+            )}
+          </a>
+
+          <div className="w-px h-5 bg-base-300 mx-1" />
+
+          <LanguagePicker />
+
           <button
             onClick={handleLogout}
-            className="flex items-center text-gray-700 hover:text-gray-900"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
             aria-label="Cerrar sesión"
+            title={t('nav.logout')}
           >
-            <LogOut className="h-6 w-6 mr-1" />
-            <span className="font-medium"></span>
+            <LogOut className="h-4 w-4" />
           </button>
-        </div>
-      </nav>
+        </nav>
+      </div>
     </header>
   );
 }

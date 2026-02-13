@@ -10,7 +10,7 @@ const currentLocale = 'en';
 ---
 
 <Layout title="Welcome to Roots Barefoot Budget Generator" currentLocale={currentLocale}>
-  <main class="container mx-auto w-full m-20 p-2">
+  <main class="container mx-auto w-full px-4 lg:px-8 py-6">
     <CartPage client:only="react" DNI={DNI} IBAN={IBAN} />
   </main>
 </Layout>

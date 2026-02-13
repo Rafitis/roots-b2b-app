@@ -1,4 +1,15 @@
+/**
+ * @deprecated Migrado a Supabase tabla `products` (campo `is_visible = false`)
+ * Estos productos ahora se gestionan desde /admin/products
+ * No eliminar hasta verificar que toda la migración está completa
+ */
 export const EXCLUDE_ID_PROUDUCTS =  [10362115359051, 10370887778635, 10370888139083]
+
+/**
+ * @deprecated Migrado a Supabase tabla `products` (campo `price_override`)
+ * Los precios B2B ahora se gestionan desde /admin/products
+ * No eliminar hasta verificar que toda la migración está completa
+ */
 export const SHOES_DATA = {
   8841273639243: {
     "name": "Roots Freedom Negras",

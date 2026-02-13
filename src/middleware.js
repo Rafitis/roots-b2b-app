@@ -30,7 +30,8 @@ export async function onRequest(context, next) {
   if (
     url.pathname === '/signin' ||
     url.pathname === '/signup' ||
-    url.pathname.startsWith('/api/auth')
+    url.pathname.startsWith('/api/auth') ||
+    url.pathname.startsWith('/api/cron')  // Endpoints de cron jobs (usan Authorization header)
   ) {
     return next(); // Deja pasar sin verificar autenticación
   }

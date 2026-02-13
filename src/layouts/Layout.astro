@@ -1,7 +1,6 @@
 ---
 import "@styles/global.css";
 import Footer from "@components/Footer.astro";
-import AnimatedLogo from '../components/AnimatedLogo.jsx';
 import Header from '../components/Header.jsx';
 import GlobalToaster from '../components/GlobalToaster.jsx';
 import { isUserAdmin } from '../lib/auth.js';
@@ -31,19 +30,10 @@ const isAdmin = await isUserAdmin(Astro.request);
 		</script>
   </head>
   <body class="min-h-screen flex flex-col">
-    <!-- Logo animado -->
-    <body class="min-h-screen flex flex-col">
-		{(pathname !== '/carrito' && pathname !== '/en/carrito' && !pathname.startsWith('/admin') && !pathname.startsWith('/en/admin')) && (
-		  <AnimatedLogo client:only />
-		  <Header showLogo={false} client:only />
-		)}
-
-		{(pathname === '/carrito' || pathname === '/en/carrito' || pathname.startsWith('/admin') || pathname.startsWith('/en/admin')) && (
-		<Header showLogo={true} client:only />
-		)}
+		<Header client:only />
 
     <!-- Contenido principal con margen top para el header fijo -->
-    <main class="flex-1 p-2 pt-[100px]">
+    <main class="flex-1 p-2 pt-24">
       <slot />
     </main>	
 
@@ -56,30 +46,26 @@ const isAdmin = await isUserAdmin(Astro.request);
 </html>
 <style is:global>
 	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
+		/* B2B Brand tokens — warm workshop palette */
+		--roots-sand: #f5f0eb;
+		--roots-stone: #e8e2db;
+		--roots-bark: #3d3428;
+		--roots-earth: #5c4f3d;
+		--roots-clay: #8b7355;
+		--roots-moss: #6b7c5e;
+		--roots-warm-white: #faf7f4;
+		--roots-border: rgba(61, 52, 40, 0.08);
+		--roots-border-strong: rgba(61, 52, 40, 0.15);
 	}
 	html {
-		font-family: system-ui, sans-serif;
-		background: #bbb;
-		color: #fff;
+		font-family: "Figtree Variable", system-ui, sans-serif;
+		background: var(--roots-sand);
+		color: var(--roots-bark);
 	}
 	code {
 		font-family:
 			"Figtree Variable",
-			sans-serif,
-			Lucida Console,
-			Liberation Mono,
-			DejaVu Sans Mono,
-			Bitstream Vera Sans Mono,
-			Courier New,
+			system-ui,
 			monospace;
 	}
 	body {
@@ -87,7 +73,6 @@ const isAdmin = await isUserAdmin(Astro.request);
 		flex-direction: column;
 		min-height: 100vh;
 		width: 100%;
-		height: 100%;
 		margin: 0;
 	}
 </style>

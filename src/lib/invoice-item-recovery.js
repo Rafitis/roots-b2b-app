@@ -16,7 +16,7 @@
  * 4. Eliminar tests relacionados con lazy loading en invoice-edit.test.js
  */
 
-import { getNestedCatalog } from './stock_info.js';
+import { supabase } from './supabase.js';
 
 /**
  * Busca el tag que aplica descuento en el array de tags del producto
@@ -35,6 +35,9 @@ function findDiscountTag(productTags) {
 
 /**
  * Completa items de factura antigua con datos de Shopify
+ *
+ * Usa una query directa a product_variants + products en Supabase
+ * en lugar de cargar todo el catálogo con getNestedCatalog().
  */
 export async function completeOldInvoiceItems(items) {
   if (!items?.length) return items;
@@ -43,24 +46,46 @@ export async function completeOldInvoiceItems(items) {
   const needsCompletion = items.some(i => !i.product_id || i.tag === undefined || !i.sku);
   if (!needsCompletion) return items;
 
-  const catalog = await getNestedCatalog();
-  if (!catalog?.length) return items;
+  // Recoger los variant IDs que necesitamos buscar
+  const variantIds = items
+    .filter(i => !i.product_id || i.tag === undefined || !i.sku)
+    .map(i => Number(i.id))
+    .filter(id => !isNaN(id));
+
+  if (!variantIds.length) return items;
+
+  // Query directa: solo los variants que necesitamos, con datos del producto padre
+  const { data: variants, error } = await supabase
+    .from('product_variants')
+    .select('shopify_variant_id, sku, product_id, products(shopify_product_id, tags)')
+    .in('shopify_variant_id', variantIds);
+
+  if (error || !variants?.length) {
+    console.error('completeOldInvoiceItems: error fetching variants', error);
+    return items.map(item => {
+      if (item.product_id && item.tag !== undefined && item.sku) return item;
+      return { ...item, product_id: null, tag: null, sku: null };
+    });
+  }
+
+  // Indexar por variant ID para lookup O(1)
+  const variantMap = new Map();
+  for (const v of variants) {
+    variantMap.set(v.shopify_variant_id, v);
+  }
 
   return items.map(item => {
     if (item.product_id && item.tag !== undefined && item.sku) return item;
 
-    // Buscar variant en catálogo
-    for (const product of catalog) {
-      const variant = product.variants.find(v => v.ID_sku === Number(item.id));
-      if (variant) {
-        const tag = findDiscountTag(product.tags);
-        return {
-          ...item,
-          product_id: item.product_id || product.ID_producto,
-          tag: item.tag !== undefined ? item.tag : tag,
-          sku: item.sku || variant.SKU
-        };
-      }
+    const match = variantMap.get(Number(item.id));
+    if (match) {
+      const tag = findDiscountTag(match.products?.tags);
+      return {
+        ...item,
+        product_id: item.product_id || match.products?.shopify_product_id,
+        tag: item.tag !== undefined ? item.tag : tag,
+        sku: item.sku || match.sku
+      };
     }
 
     // Variant no encontrado - retornar con campos null

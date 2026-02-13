@@ -1,5 +1,6 @@
 // src/components/CartPage.jsx
 import { useState, useEffect, lazy, Suspense } from "react";
+import { Trash2, AlertCircle, Plus } from "lucide-react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import SummaryCheckout from "@components/SummaryCheckout";
@@ -40,7 +41,6 @@ const CartPage = ({ DNI, IBAN}) => {
   });
 
   const [customerInfo, setCustomerInfo] = useState(() => {
-    // Intentar cargar desde localStorage si es que estamos editando
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('editingCustomerInfo');
       if (saved) {
@@ -60,7 +60,7 @@ const CartPage = ({ DNI, IBAN}) => {
       shopify_order_number: "",
     };
   });
-  // ✅ NUEVO: Usar hook reactivo sin delay (solución al bug de race condition)
+
   const cartItems = useCartItems();
 
   // Persistir cambios en customerInfo en localStorage mientras se está editando
@@ -70,30 +70,23 @@ const CartPage = ({ DNI, IBAN}) => {
     }
   }, [customerInfo, isEditingMode]);
 
-  // Detectar si estamos en modo edición al montar (solo una vez por sesión)
+  // Detectar si estamos en modo edición al montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const editingData = localStorage.getItem('editingInvoice');
       const editingDataLoaded = localStorage.getItem('editingInvoiceLoaded');
 
-      // Solo cargar si: 1) hay datos de edición, Y 2) NO se han cargado aún en esta sesión
       if (editingData && !editingDataLoaded) {
         try {
           const parsed = JSON.parse(editingData);
 
-          // Marcar que ya cargamos los datos en esta sesión
           localStorage.setItem('editingInvoiceLoaded', 'true');
-
-          // Limpiar carrito actual
           removeAllFromCart();
 
-          // Cargar items de la factura
           if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
             addToCartMultiple(parsed.items);
-            // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
           }
 
-          // Cargar información del cliente (incluyendo shopify_order_number e isRecharge)
           const loadedCountry = parsed.customer_info.country;
 
           setCustomerInfo({
@@ -105,7 +98,6 @@ const CartPage = ({ DNI, IBAN}) => {
             shopify_order_number: parsed.customer_info.shopify_order_number || ""
           });
 
-          // Marcar como modo edición y guardar en localStorage para persistencia
           setIsEditingMode(true);
           setEditingInvoiceNumber(parsed.original_invoice_number);
           setEditingInvoiceId(parsed.original_invoice_id);
@@ -113,10 +105,8 @@ const CartPage = ({ DNI, IBAN}) => {
           localStorage.setItem('editingInvoiceNumber', parsed.original_invoice_number);
           localStorage.setItem('editingInvoiceId', parsed.original_invoice_id);
 
-          // NO limpiar localStorage - lo mantenemos mientras se edita
-          // Se borrará solo cuando se guarde la factura
         } catch (error) {
-          console.error('❌ Error loading editing invoice data:', error);
+          console.error('Error loading editing invoice data:', error);
           toast.error('Error al cargar datos de edición');
         }
       }
@@ -127,34 +117,26 @@ const CartPage = ({ DNI, IBAN}) => {
     const newQuantity = Number(e.target.value)
     updateCartQuantity(item, newQuantity)
     updateCartDiscount(item.tag, item.product_id)
-    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   }
 
-  // Función para eliminar un item del carrito
   const handleDeleteItem = (item) => {
     removeFromCart(item);
-    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   };
 
   const handleDeleteAll = () => {
     removeAllFromCart();
-    // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
   };
 
-  // Crear un nuevo pedido (salir del modo edición)
   const handleCreateNewOrder = () => {
     if (window.confirm('¿Deseas crear un nuevo pedido? Se borrará toda la información de la edición actual.')) {
-      // Limpiar localStorage de edición
       localStorage.removeItem('editingInvoice');
       localStorage.removeItem('editingInvoiceLoaded');
       localStorage.removeItem('editingCustomerInfo');
       localStorage.removeItem('editingInvoiceNumber');
       localStorage.removeItem('editingInvoiceId');
 
-      // Limpiar carrito
       removeAllFromCart();
 
-      // Resetear estados
       setIsEditingMode(false);
       setEditingInvoiceNumber(null);
       setEditingInvoiceId(null);
@@ -166,48 +148,62 @@ const CartPage = ({ DNI, IBAN}) => {
         isRecharge: false,
         shopify_order_number: "",
       });
-      // ✅ No necesitamos setCartItems - useCartItems() se actualiza automáticamente
 
       toast.success('Nuevo pedido creado. Carrito vacío.');
     }
   };
 
-  // ✅ NUEVO: Calcular totales con hook reactivo y memoizado
-  // Se actualiza automáticamente cuando cambia el carrito o customerInfo
   const totals = useCartTotals(customerInfo, true);
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Banner de modo edición */}
       {isEditingMode && (
-        <div className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 rounded">
-          <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 p-4 bg-info/5 border border-info/20 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-blue-800 font-semibold">
-                ✏️ Editando factura <strong>#{editingInvoiceNumber}</strong>
+              <p className="text-sm font-semibold text-roots-bark">
+                Editando factura <strong>#{editingInvoiceNumber}</strong>
               </p>
-              <p className="text-sm text-blue-700">
+              <p className="text-xs text-roots-earth mt-0.5">
                 Se creará una nueva factura. La original será marcada como cancelada.
               </p>
             </div>
-            <button
-              onClick={handleCreateNewOrder}
-              className="px-4 py-2 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 transition"
-              title="Crear un nuevo pedido y salir del modo edición"
-            >
-              ➕ Nuevo Pedido
-            </button>
           </div>
+          <button
+            onClick={handleCreateNewOrder}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-warning text-warning-content rounded-md hover:opacity-90 transition-opacity flex-shrink-0"
+            title="Crear un nuevo pedido y salir del modo edición"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nuevo Pedido
+          </button>
         </div>
       )}
 
-      <h2 className="text-xl font-bold py-10">{t('cart.infoTitle')}</h2>
-      <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
-      <h2 className="text-xl font-bold py-10">{t('table.title')}</h2>
-      <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
+      {/* Datos del cliente */}
+      <section>
+        <h2 className="section-heading mb-4">{t('cart.infoTitle')}</h2>
+        <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
+      </section>
+
+      {/* Tabla de items */}
+      <section>
+        <h2 className="section-heading mb-4">{t('table.title')}</h2>
+        <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
+      </section>
+
+      {/* Resumen + acciones */}
       <SummaryCheckout customerInfo={customerInfo} />
-      <div className="flex justify-between">
-        <Suspense fallback={<button className="btn btn-primary btn-disabled">Cargando...</button>}>
+
+      <div className="flex items-center justify-between gap-4 pb-8">
+        <Suspense fallback={
+          <button className="btn btn-primary btn-disabled" disabled>
+            <span className="loading loading-spinner loading-sm"></span>
+            Cargando...
+          </button>
+        }>
           <InvoiceDownload
             items={cartItems}
             customerInfo={customerInfo}
@@ -218,7 +214,11 @@ const CartPage = ({ DNI, IBAN}) => {
             editingInvoiceId={editingInvoiceId}
           />
         </Suspense>
-        <button className="btn btn-error btn-md hover:scale-105 text-primary" onClick={handleDeleteAll}>
+        <button
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-error border border-error/20 rounded-md hover:bg-error/5 transition-colors"
+          onClick={handleDeleteAll}
+        >
+          <Trash2 className="w-4 h-4" />
           {t('global.delete')}
         </button>
       </div>
