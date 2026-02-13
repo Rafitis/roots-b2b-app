@@ -1,7 +1,6 @@
 // InvoiceDownload.jsx
-import React, {useMemo, useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  PDFDownloadLink,
   Document,
   Page,
   Text,
@@ -84,19 +83,6 @@ const InvoiceDownload = ({
 
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
-
-  // Usa useMemo para evitar recálculos innecesarios
-  const preOrderItems = useMemo(() => items.filter(i => i.isPreOrder), [items]);
-  const regularItems = useMemo(() => items.filter(i => !i.isPreOrder), [items]);
-
-  const linkStyle = {
-    textDecoration: 'none',
-    padding: '12px',
-    color: '#fff',
-    backgroundColor: '#121212',
-    borderRadius: '10px',
-    display: 'inline-block',
-  };
 
   const [isReady, setIsReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -294,10 +280,14 @@ const InvoiceDownload = ({
     // Generar PDF y guardarlo en servidor
     if (!isSaving) {
       try {
+        const currentItems = getCart();
+        const currentRegularItems = currentItems.filter(i => !i.isPreOrder);
+        const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
+
         const pdfDocument = (
           <CombinedInvoice
-            regularItems={regularItems}
-            preOrderItems={preOrderItems}
+            regularItems={currentRegularItems}
+            preOrderItems={currentPreOrderItems}
             dni={dni}
             iban={iban}
             selectedCustomer={customerInfo}
@@ -306,6 +296,14 @@ const InvoiceDownload = ({
         );
 
         const pdfBlob = await pdf(pdfDocument).toBlob();
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${t('download.documentTitle')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
         await saveInvoiceToServer(pdfBlob);
       } catch (error) {
         console.error('Error generating PDF:', error);
@@ -316,32 +314,14 @@ const InvoiceDownload = ({
 
   return (
     <ErrorBoundary>
-        <PDFDownloadLink
-          key={`${regularItems.length}-${preOrderItems.length}`}
-          document={
-            <CombinedInvoice
-              regularItems={regularItems}
-              preOrderItems={preOrderItems}
-              dni={dni}
-              iban={iban}
-              selectedCustomer={customerInfo}
-              title={title}
-            />
-          }
-          fileName={`${t('download.documentTitle')}.pdf`}
-          className="btn btn-primary hover:scale-105 text-white"
-          onClick={handleDownloadClick}  // intercepta el click
-        >
-          {({ loading, error }) => {
-              if (error) {
-                console.error('Error generando factura combinada:', error);
-                return t('download.error');
-              }
-              return loading
-                ? t('download.generating')
-                : t('download.message');
-            }}
-        </PDFDownloadLink>
+      <button
+        type="button"
+        className="btn btn-primary hover:scale-105 text-white"
+        onClick={handleDownloadClick}
+        disabled={isSaving}
+      >
+        {isSaving ? t('download.generating') : t('download.message')}
+      </button>
     </ErrorBoundary>
   );
 };
