@@ -44,6 +44,7 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
     let value = editValue.trim();
 
     if (field === 'price_override') {
+      value = value.replace(/,/g, '.');
       if (value === '') {
         value = null;
       } else {
@@ -303,7 +304,10 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                             type="number"
                             step="0.01"
                             value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
+                            onChange={(e) => {
+                              const nextValue = e.target.value.replace(/,/g, '.');
+                              setEditValue(nextValue);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') saveEdit(product);
                               if (e.key === 'Escape') cancelEdit();
