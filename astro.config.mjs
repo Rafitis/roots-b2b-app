@@ -13,6 +13,10 @@ export default defineConfig({
     react(), 
     tailwind({applyBaseStyles: false}),
   ],
+  redirects: {
+    '/': '/main-view',
+    '/en': '/en/main-view'
+  },
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],
