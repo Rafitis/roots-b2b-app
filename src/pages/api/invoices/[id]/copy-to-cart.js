@@ -46,7 +46,7 @@ export const POST = async ({ request, params }) => {
     // 2. Obtener la factura
     const { data: invoice, error: fetchError } = await supabase
       .from('invoices')
-      .select('id, invoice_number, items_data, company_name, nif_cif, address, country, status, shopify_order_number, surcharge_applied, surcharge_amount')
+      .select('id, invoice_number, items_data, company_name, nif_cif, address, country, status, shopify_order_number, surcharge_applied, surcharge_amount, custom_discount_eur')
       .eq('id', id)
       .single();
 
@@ -103,6 +103,7 @@ export const POST = async ({ request, params }) => {
         invoice_id: invoice.id,
         original_invoice_number: invoice.invoice_number,
         items: items,
+        custom_discount_eur: invoice.custom_discount_eur || 0,
         customer_info: {
           fiscal_name: invoice.company_name,
           nif_cif: invoice.nif_cif,

@@ -140,10 +140,14 @@ export const POST = async ({ request }) => {
       );
     }
 
-    // 7. Actualizar pdf_storage_path en la tabla
+    // 7. Actualizar pdf_storage_path y custom_discount_eur en la tabla
+    const updateFields = { pdf_storage_path: pdfStoragePath };
+    if (invoice_data.custom_discount_eur > 0) {
+      updateFields.custom_discount_eur = Math.round(invoice_data.custom_discount_eur * 100) / 100;
+    }
     const { error: updateError } = await supabase
       .from('invoices')
-      .update({ pdf_storage_path: pdfStoragePath })
+      .update(updateFields)
       .eq('id', invoiceId);
 
     if (updateError) {
