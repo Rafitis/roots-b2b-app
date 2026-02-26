@@ -124,7 +124,7 @@ function formatDate(date) {
 }
 
 // Componente InvoicePDF
-const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title }) => {
+const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false, preSale, title, customDiscount = 0 }) => {
   const { currentLang } = useI18n();
   const t = useTranslations(currentLang);
 
@@ -135,14 +135,18 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
     applyRecharge: selectedCustomer.isRecharge,
     includeShipping: true
   });
-  
+
+  // Aplicar descuento personalizado (solo admin, flujo de edición)
+  const discount = Math.min(Math.max(customDiscount || 0, 0), total_factura_envio);
+  const total_con_descuento = Math.round((total_factura_envio - discount) * 100) / 100;
+
   // Calcular total de la factura de preventa.
   let thirty_percent = 0;
   let remaining_balance = 0;
   if (preSale) {
-    // Si es preventa, calcula el 30% y el resto de la factura más el envío
-    thirty_percent = total_factura_envio * 0.3
-    remaining_balance = total_factura_envio - thirty_percent
+    // Si es preventa, calcula el 30% y el resto sobre el total ya descontado
+    thirty_percent = Math.round(total_con_descuento * 0.3 * 100) / 100;
+    remaining_balance = Math.round((total_con_descuento - thirty_percent) * 100) / 100;
   }
 
 
@@ -242,6 +246,13 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
               </Text>
             </View>
 
+            {discount > 0 && (
+              <View style={styles.totalRow}>
+                <Text style={styles.label}>{t("invoice.total.customDiscount")}</Text>
+                <Text style={styles.value}>-{discount.toFixed(2)} €</Text>
+              </View>
+            )}
+
             {/* Espacio antes del separador */}
             <View style={styles.spacer} />
 
@@ -253,7 +264,7 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
                 {t("invoice.total.total")}
               </Text>
               <Text style={[styles.value, styles.bold, { fontSize: 10 }]}>
-                {total_factura_envio.toFixed(2)} €
+                {total_con_descuento.toFixed(2)} €
               </Text>
             </View>
           </View>
@@ -297,6 +308,13 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
               {shipping.toFixed(2)} €
             </Text>
           </View>
+
+          {discount > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.label}>{t("invoice.total.customDiscount")}</Text>
+              <Text style={styles.value}>-{discount.toFixed(2)} €</Text>
+            </View>
+          )}
 
           {/* Espacio y línea divisoria antes de las líneas en negrita */}
           <View style={styles.spacer} />

@@ -345,3 +345,25 @@ export function formatEUR(value, locale = 'es-ES') {
     currency: 'EUR'
   }).format(value);
 }
+
+// ============ DESCUENTO PERSONALIZADO (ADMIN) ============
+
+/**
+ * Aplica un descuento fijo en EUR al resultado de calculateTotals.
+ * Solo disponible para administradores durante el flujo de edición.
+ * El descuento se resta del total_factura final y nunca puede excederlo.
+ *
+ * @param {Object} totals - Output de calculateTotals()
+ * @param {number} discountEUR - Descuento fijo en EUR (>= 0)
+ * @returns {Object} Mismo shape que totals + { custom_discount }
+ */
+export function applyCustomDiscount(totals, discountEUR = 0) {
+  const discount = isValidAmount(discountEUR)
+    ? Math.min(roundEUR(discountEUR), totals.total_factura)
+    : 0;
+  return {
+    ...totals,
+    custom_discount: discount,
+    total_factura: roundEUR(totals.total_factura - discount),
+  };
+}

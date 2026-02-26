@@ -253,13 +253,15 @@ export default function AdminInvoices() {
       localStorage.removeItem('editingInvoiceNumber');
       localStorage.removeItem('editingInvoiceId');
       localStorage.removeItem('editingCustomerInfo');
+      localStorage.removeItem('editingCustomDiscount');
 
       // Guardar datos en localStorage para que CartPage los detecte
       localStorage.setItem('editingInvoice', JSON.stringify({
         original_invoice_id: data.invoice_id,
         original_invoice_number: data.original_invoice_number,
         items: data.items,
-        customer_info: data.customer_info
+        customer_info: data.customer_info,
+        custom_discount_eur: data.custom_discount_eur || 0
       }));
 
       toast.success(`Factura ${data.original_invoice_number} copiada al carrito`);

@@ -4,6 +4,7 @@ import { Trash2, AlertCircle, Plus } from "lucide-react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import SummaryCheckout from "@components/SummaryCheckout";
+import CustomDiscountInput from "@components/invoice/CustomDiscountInput";
 
 // Lazy load: @react-pdf/renderer es ~500KB, solo cargarlo cuando se necesite
 const InvoiceDownload = lazy(() => import("@components/invoice/InvoiceDownload"));
@@ -38,6 +39,21 @@ const CartPage = ({ DNI, IBAN}) => {
       return saved || null;
     }
     return null;
+  });
+
+  const [customDiscount, setCustomDiscount] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const editingData = localStorage.getItem('editingInvoice');
+      if (editingData) {
+        try {
+          const parsed = JSON.parse(editingData);
+          return parsed.custom_discount_eur || 0;
+        } catch {
+          return 0;
+        }
+      }
+    }
+    return 0;
   });
 
   const [customerInfo, setCustomerInfo] = useState(() => {
@@ -101,6 +117,7 @@ const CartPage = ({ DNI, IBAN}) => {
           setIsEditingMode(true);
           setEditingInvoiceNumber(parsed.original_invoice_number);
           setEditingInvoiceId(parsed.original_invoice_id);
+          setCustomDiscount(parsed.custom_discount_eur || 0);
 
           localStorage.setItem('editingInvoiceNumber', parsed.original_invoice_number);
           localStorage.setItem('editingInvoiceId', parsed.original_invoice_id);
@@ -134,6 +151,7 @@ const CartPage = ({ DNI, IBAN}) => {
       localStorage.removeItem('editingCustomerInfo');
       localStorage.removeItem('editingInvoiceNumber');
       localStorage.removeItem('editingInvoiceId');
+      setCustomDiscount(0);
 
       removeAllFromCart();
 
@@ -195,7 +213,16 @@ const CartPage = ({ DNI, IBAN}) => {
       </section>
 
       {/* Resumen + acciones */}
-      <SummaryCheckout customerInfo={customerInfo} />
+      <SummaryCheckout customerInfo={customerInfo} customDiscount={isEditingMode ? customDiscount : 0} />
+
+      {/* Descuento personalizado (solo admins en modo edición) */}
+      {isEditingMode && (
+        <CustomDiscountInput
+          value={customDiscount}
+          onChange={setCustomDiscount}
+          maxAmount={totals.total_factura}
+        />
+      )}
 
       <div className="flex items-center justify-between gap-4 pb-8">
         <Suspense fallback={
@@ -212,6 +239,7 @@ const CartPage = ({ DNI, IBAN}) => {
             totals={totals}
             isEditingMode={isEditingMode}
             editingInvoiceId={editingInvoiceId}
+            customDiscount={isEditingMode ? customDiscount : 0}
           />
         </Suspense>
         <button
