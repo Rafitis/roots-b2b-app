@@ -25,12 +25,13 @@ const CombinedInvoice = React.memo( ({
   dni,
   iban,
   selectedCustomer,
-  title
+  title,
+  customDiscount = 0
 }) => {
   // Asegurarse que los arrays son válidos
   const safeRegularItems = Array.isArray(regularItems) ? regularItems : [];
   const safePreOrderItems = Array.isArray(preOrderItems) ? preOrderItems : [];
-  
+
   const hasAny = safeRegularItems.length > 0 || safePreOrderItems.length > 0;
 
   return (
@@ -46,6 +47,7 @@ const CombinedInvoice = React.memo( ({
               iban={iban}
               selectedCustomer={selectedCustomer}
               preSale={false}
+              customDiscount={customDiscount}
             />
           )}
           {preOrderItems.length > 0 && (
@@ -57,6 +59,7 @@ const CombinedInvoice = React.memo( ({
               iban={iban}
               selectedCustomer={selectedCustomer}
               preSale={true}
+              customDiscount={customDiscount}
             />
           )}
         </>
@@ -78,7 +81,8 @@ const InvoiceDownload = ({
   title,
   totals = {}, // Se espera: { total_sin_iva, iva, recargo, total }
   isEditingMode = false,
-  editingInvoiceId = null
+  editingInvoiceId = null,
+  customDiscount = 0
 }) => {
 
   const { currentLang } = useI18n();
@@ -127,6 +131,7 @@ const InvoiceDownload = ({
 
       // ✅ VALIDACIÓN: Detectar desincronización entre props y store
       const itemsDiff = Math.abs(currentItems.length - items.length);
+      // Comparar totales brutos (sin descuento) — el descuento se aplica por separado al guardar
       const totalsDiff = Math.abs(currentTotals.total_factura - (totals.total_factura || 0));
 
       if (itemsDiff > 0 || totalsDiff > 1) {
@@ -176,6 +181,7 @@ const InvoiceDownload = ({
         const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
 
         // Preparar datos de factura usando currentTotals (store actual)
+        const discount = customDiscount || 0;
         const invoiceData = {
           company_name: customerInfo.fiscal_name,
           nif_cif: customerInfo.nif_cif,
@@ -183,12 +189,13 @@ const InvoiceDownload = ({
           country: customerInfo.country || 'ES',
           items_count: currentItems.length,
           items_data: itemsData,
-          total_amount_eur: currentTotals.total_factura || 0,
+          total_amount_eur: Math.max(0, Math.round(((currentTotals.total_factura || 0) - discount) * 100) / 100),
           vat_amount: currentTotals.iva || 0,
           surcharge_applied: !!customerInfo.isRecharge,
           surcharge_amount: currentTotals.recargo || 0,
           shipping_amount: currentTotals.shipping || 0,
           is_preorder: currentPreOrderItems.length > 0,
+          custom_discount_eur: discount,
           // Si estamos editando, pasar el ID de la factura original
           previous_invoice_id: isEditingMode ? editingInvoiceId : null,
           // Incluir número de Shopify si existe
@@ -237,6 +244,7 @@ const InvoiceDownload = ({
               localStorage.removeItem('editingCustomerInfo');
               localStorage.removeItem('editingInvoiceNumber');
               localStorage.removeItem('editingInvoiceId');
+              localStorage.removeItem('editingCustomDiscount');
 
               // Redirigir al dashboard de admin después de guardar
               setTimeout(() => {
@@ -292,6 +300,7 @@ const InvoiceDownload = ({
             iban={iban}
             selectedCustomer={customerInfo}
             title={title}
+            customDiscount={customDiscount}
           />
         );
 

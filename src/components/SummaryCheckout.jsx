@@ -2,7 +2,7 @@ import { useTranslations } from "@i18n/utils";
 import { useI18n } from "@hooks/useI18n";
 import { useCartTotals } from "@hooks/useCart";
 
-export default function SummaryCheckout({ customerInfo }) {
+export default function SummaryCheckout({ customerInfo, customDiscount = 0 }) {
     const { currentLang } = useI18n();
     const t = useTranslations(currentLang);
 
@@ -29,10 +29,16 @@ export default function SummaryCheckout({ customerInfo }) {
                     <span>{t('invoice.total.shipping').toUpperCase()}</span>
                     <span className="tabular-nums font-medium">{shipping.toFixed(2)} €</span>
                 </div>
+                {customDiscount > 0 && (
+                    <div className="flex items-center justify-between text-sm text-success">
+                        <span>{t('invoice.total.customDiscount')}</span>
+                        <span className="tabular-nums font-medium">-{customDiscount.toFixed(2)} €</span>
+                    </div>
+                )}
                 <div className="border-t border-base-300/60 pt-3 mt-3">
                     <div className="flex items-center justify-between">
                         <span className="text-base font-bold text-roots-bark">{t('invoice.total.total')}</span>
-                        <span className="text-lg font-bold text-roots-bark tabular-nums">{total_factura_envio.toFixed(2)} €</span>
+                        <span className="text-lg font-bold text-roots-bark tabular-nums">{Math.max(0, total_factura_envio - customDiscount).toFixed(2)} €</span>
                     </div>
                 </div>
             </div>
