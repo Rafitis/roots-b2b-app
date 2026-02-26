@@ -108,7 +108,8 @@ export const ui = {
         'invoice.invoiceNumber': 'Factura',
         'invoice.total.shipping': 'Envío',
         'invoice.total.shippingCost': 'Gastos de Envío',
-        
+        'invoice.total.customDiscount': 'Descuento personalizado',
+
         'invoice.table.item': 'Concepto',
         'invoice.table.quantity': 'Cantidad',
         'invoice.table.color': 'Color',
@@ -181,6 +182,7 @@ export const ui = {
         'invoice.invoiceNumber': 'Invoice',
         'invoice.total.shipping': 'Shipping',
         'invoice.total.shippingCost': 'Shipping Costs',
+        'invoice.total.customDiscount': 'Custom discount',
 
         'invoice.table.item': 'Concept',
         'invoice.table.quantity': 'Quantity',
