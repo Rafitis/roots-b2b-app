@@ -20,6 +20,7 @@ import {
   calculateRecharge,
   calculateTotals,
   calculatePreSaleAmounts,
+  applyCustomDiscount,
   getVATRate,
   isValidCountryCode,
   isValidAmount,
@@ -514,5 +515,74 @@ describe('Edge Cases & Regressions', () => {
 
     expect(isNaN(result.total_factura)).toBe(false);
     expect(result.total_factura).toBeGreaterThanOrEqual(0); // Los items inválidos se ignoran, total >= 0
+  });
+});
+
+describe('applyCustomDiscount', () => {
+  const baseTotals = {
+    total_sin_iva: 100,
+    iva: 21,
+    recargo: 0,
+    shipping: 5,
+    total_factura: 126,
+    vatRate: 21,
+  };
+
+  it('descuento 0 devuelve totals sin cambios con custom_discount: 0', () => {
+    const result = applyCustomDiscount(baseTotals, 0);
+    expect(result.total_factura).toBe(126);
+    expect(result.custom_discount).toBe(0);
+    expect(result.total_sin_iva).toBe(100);
+  });
+
+  it('descuento parcial resta del total_factura correctamente', () => {
+    const result = applyCustomDiscount(baseTotals, 50);
+    expect(result.total_factura).toBe(76);
+    expect(result.custom_discount).toBe(50);
+  });
+
+  it('descuento superior al total se clampea al total (total_factura = 0)', () => {
+    const result = applyCustomDiscount(baseTotals, 500);
+    expect(result.custom_discount).toBe(126);
+    expect(result.total_factura).toBe(0);
+  });
+
+  it('descuento igual al total resulta en total_factura = 0', () => {
+    const result = applyCustomDiscount(baseTotals, 126);
+    expect(result.total_factura).toBe(0);
+    expect(result.custom_discount).toBe(126);
+  });
+
+  it('descuento negativo se trata como 0', () => {
+    const result = applyCustomDiscount(baseTotals, -20);
+    expect(result.custom_discount).toBe(0);
+    expect(result.total_factura).toBe(126);
+  });
+
+  it('descuento no-numérico se trata como 0', () => {
+    const result = applyCustomDiscount(baseTotals, 'abc');
+    expect(result.custom_discount).toBe(0);
+    expect(result.total_factura).toBe(126);
+  });
+
+  it('sin segundo argumento aplica descuento 0 por defecto', () => {
+    const result = applyCustomDiscount(baseTotals);
+    expect(result.custom_discount).toBe(0);
+    expect(result.total_factura).toBe(126);
+  });
+
+  it('preserva el resto de campos del objeto totals', () => {
+    const result = applyCustomDiscount(baseTotals, 10);
+    expect(result.total_sin_iva).toBe(100);
+    expect(result.iva).toBe(21);
+    expect(result.recargo).toBe(0);
+    expect(result.shipping).toBe(5);
+    expect(result.vatRate).toBe(21);
+  });
+
+  it('redondea correctamente a 2 decimales', () => {
+    const result = applyCustomDiscount(baseTotals, 10.555);
+    expect(result.custom_discount).toBe(10.56);
+    expect(result.total_factura).toBe(roundEUR(126 - 10.56));
   });
 });
