@@ -74,6 +74,7 @@ const CartPage = ({ DNI, IBAN}) => {
       country: "",
       isRecharge: false,
       shopify_order_number: "",
+      email: "",
     };
   });
 
@@ -111,7 +112,8 @@ const CartPage = ({ DNI, IBAN}) => {
             address: parsed.customer_info.address,
             country: loadedCountry,
             isRecharge: parsed.customer_info.isRecharge || false,
-            shopify_order_number: parsed.customer_info.shopify_order_number || ""
+            shopify_order_number: parsed.customer_info.shopify_order_number || "",
+            email: parsed.customer_info.email || ""
           });
 
           setIsEditingMode(true);
@@ -165,6 +167,7 @@ const CartPage = ({ DNI, IBAN}) => {
         country: "",
         isRecharge: false,
         shopify_order_number: "",
+        email: "",
       });
 
       toast.success('Nuevo pedido creado. Carrito vacío.');

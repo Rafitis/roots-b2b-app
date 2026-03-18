@@ -85,7 +85,7 @@ export const GET = async ({ request }) => {
       query = query.ilike('company_name', `%${company}%`);
     }
 
-    if (status && ['draft', 'finalized', 'rehashed', 'cancelled'].includes(status)) {
+    if (status && ['pending_review', 'shopify_draft', 'completed', 'cancelled', 'finalized'].includes(status)) {
       query = query.eq('status', status);
     }
 

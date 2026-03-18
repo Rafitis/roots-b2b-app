@@ -324,22 +324,24 @@ export default function AdminInvoices() {
         body: JSON.stringify({ shopify_order_number: trimmedNumber })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         toast.error(data.error || 'Error al actualizar número de Shopify');
         return;
       }
 
-      // Actualizar el estado local
+      // Actualizar el estado local (incluyendo status si cambió a 'completed')
       setInvoices(invoices.map(inv =>
         inv.id === invoiceId
-          ? { ...inv, shopify_order_number: trimmedNumber }
+          ? { ...inv, shopify_order_number: trimmedNumber, ...(data.status && { status: data.status }) }
           : inv
       ));
 
       // Mensaje según la acción
       const actionMsg = trimmedNumber ? 'actualizado' : 'eliminado';
-      toast.success(`Número de Shopify ${actionMsg}`);
+      const statusMsg = data.status === 'completed' ? ' — Factura marcada como Completada' : '';
+      toast.success(`Número de Shopify ${actionMsg}${statusMsg}`);
     } catch (error) {
       console.error('Error updating shopify number:', error);
       toast.error('Error al actualizar número de Shopify');

@@ -70,7 +70,7 @@ export const PUT = async ({ request, params }) => {
       );
     }
 
-    // 4. Validar que la factura no esté cancelada
+    // 4. Validar que la factura esté en un estado que permita actualizar el número Shopify
     if (invoice.status === 'cancelled') {
       return new Response(
         JSON.stringify({
@@ -81,13 +81,29 @@ export const PUT = async ({ request, params }) => {
       );
     }
 
+    if (invoice.status === 'pending_review') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'No se puede asignar número de Shopify a una factura pendiente de revisión. Primero crea el Draft Order.'
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // 5. Actualizar shopify_order_number en BD
+    // Si la factura está en shopify_draft y se introduce un número, pasar a completed
+    const updateFields = {
+      shopify_order_number: shopify_order_number.trim(),
+      updated_at: new Date().toISOString()
+    };
+    if (invoice.status === 'shopify_draft' && shopify_order_number.trim()) {
+      updateFields.status = 'completed';
+    }
+
     const { error: updateError } = await supabase
       .from('invoices')
-      .update({
-        shopify_order_number: shopify_order_number.trim(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateFields)
       .eq('id', id);
 
     if (updateError) {
@@ -135,12 +151,14 @@ export const PUT = async ({ request, params }) => {
     // 7. Retornar respuesta exitosa
     // El número de Shopify fue actualizado en BD
     // La regeneración del PDF se intentó pero si falló, no es crítico
+    const statusChanged = invoice.status === 'shopify_draft' && shopify_order_number.trim();
     return new Response(
       JSON.stringify({
         success: true,
         message: `Número de Shopify actualizado a: ${shopify_order_number}. PDF en proceso de regeneración...`,
         invoice_id: id,
-        shopify_order_number
+        shopify_order_number,
+        status: statusChanged ? 'completed' : invoice.status
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

@@ -57,12 +57,14 @@ export default function InvoiceTable({
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      draft: { classes: 'bg-warning/10 text-warning', label: 'Borrador' },
-      finalized: { classes: 'bg-success/10 text-success', label: 'Finalizada' },
-      rehashed: { classes: 'bg-info/10 text-info', label: 'Rehecha' },
-      cancelled: { classes: 'bg-error/10 text-error', label: 'Cancelada' }
+      pending_review: { classes: 'bg-warning/10 text-warning', label: 'Pendiente' },
+      shopify_draft: { classes: 'bg-info/10 text-info', label: 'Draft Creado' },
+      completed: { classes: 'bg-success/10 text-success', label: 'Completada' },
+      cancelled: { classes: 'bg-error/10 text-error', label: 'Cancelada' },
+      // Legacy: facturas anteriores al nuevo sistema de estados
+      finalized: { classes: 'bg-success/10 text-success', label: 'Finalizada' }
     };
-    return statusMap[status] || statusMap.finalized;
+    return statusMap[status] || statusMap.pending_review;
   };
 
   if (loading && invoices.length === 0) {
@@ -158,7 +160,7 @@ export default function InvoiceTable({
                     onChange={(e) => handleShopifyNumberChange(invoice.id, e.target.value)}
                     onBlur={() => handleShopifyNumberBlur(invoice.id)}
                     placeholder="—"
-                    disabled={loading || invoice.status === 'cancelled'}
+                    disabled={loading || invoice.status === 'cancelled' || invoice.status === 'pending_review'}
                     className="w-28 px-2 py-1 text-xs text-center border border-base-300 rounded bg-base-100 focus:border-roots-clay focus:outline-none disabled:bg-base-200 disabled:cursor-not-allowed transition-colors"
                   />
                 </td>

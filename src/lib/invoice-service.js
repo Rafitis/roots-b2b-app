@@ -177,7 +177,7 @@ export function buildInvoiceRecord(invoiceData, invoiceNumber, pdfStoragePath, u
     surcharge_amount: invoiceData.surcharge_amount ? formatCurrency(invoiceData.surcharge_amount) : 0,
     is_preorder: invoiceData.is_preorder || false,
     pdf_storage_path: pdfStoragePath,
-    status: 'finalized',
+    status: 'pending_review',
     notes: null,
     created_by_user_id: userId
   };

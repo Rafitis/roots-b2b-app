@@ -199,7 +199,9 @@ const InvoiceDownload = ({
           // Si estamos editando, pasar el ID de la factura original
           previous_invoice_id: isEditingMode ? editingInvoiceId : null,
           // Incluir número de Shopify si existe
-          shopify_order_number: customerInfo.shopify_order_number || null
+          shopify_order_number: customerInfo.shopify_order_number || null,
+          // Email del cliente para buscar en Shopify al crear Draft Order
+          customer_email: customerInfo.email || null
         };
 
         // Enviar al servidor

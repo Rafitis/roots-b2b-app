@@ -140,10 +140,18 @@ export const POST = async ({ request }) => {
       );
     }
 
-    // 7. Actualizar pdf_storage_path y custom_discount_eur en la tabla
-    const updateFields = { pdf_storage_path: pdfStoragePath };
+    // 7. Actualizar campos post-RPC en la tabla
+    // NOTA: El RPC save_invoice hardcodea status='finalized'. Lo sobreescribimos aquí
+    // con 'pending_review' hasta que se actualice el RPC en Supabase (deuda técnica).
+    const updateFields = {
+      pdf_storage_path: pdfStoragePath,
+      status: 'pending_review'
+    };
     if (invoice_data.custom_discount_eur > 0) {
       updateFields.custom_discount_eur = Math.round(invoice_data.custom_discount_eur * 100) / 100;
+    }
+    if (invoice_data.customer_email) {
+      updateFields.customer_email = invoice_data.customer_email.trim().toLowerCase();
     }
     const { error: updateError } = await supabase
       .from('invoices')

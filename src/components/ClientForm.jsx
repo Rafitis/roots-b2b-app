@@ -15,6 +15,7 @@ const CustomerForm = ({ onStateChange, initialData }) => {
     country: initialData?.country || "ES",
     isRecharge: initialData?.isRecharge || false,
     shopify_order_number: initialData?.shopify_order_number || "",
+    email: initialData?.email || "",
   });
 
   // Cargar datos iniciales solo cuando initialData tenga valores
@@ -27,9 +28,10 @@ const CustomerForm = ({ onStateChange, initialData }) => {
         country: initialData.country || "ES",
         isRecharge: initialData.isRecharge || false,
         shopify_order_number: initialData.shopify_order_number || "",
+        email: initialData.email || "",
       });
     }
-  }, [initialData?.fiscal_name, initialData?.nif_cif, initialData?.address, initialData?.country, initialData?.shopify_order_number]);
+  }, [initialData?.fiscal_name, initialData?.nif_cif, initialData?.address, initialData?.country, initialData?.shopify_order_number, initialData?.email]);
 
   // Cada vez que el formulario cambie, se notifica al padre
   useEffect(() => {
@@ -60,6 +62,17 @@ const CustomerForm = ({ onStateChange, initialData }) => {
             onChange={(e) => setFormData({ ...formData, nif_cif: e.target.value })}
           />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-roots-earth">{t('cart.emailPlaceholder')}</label>
+        <input
+          type="email"
+          placeholder={t('cart.emailPlaceholder')}
+          className="input-b2b w-full"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

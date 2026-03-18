@@ -103,9 +103,9 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
             className={inputClasses}
           >
             <option value="">Todos</option>
-            <option value="draft">Borrador</option>
-            <option value="finalized">Finalizada</option>
-            <option value="rehashed">Rehecha</option>
+            <option value="pending_review">Pendiente</option>
+            <option value="shopify_draft">Draft Creado</option>
+            <option value="completed">Completada</option>
             <option value="cancelled">Cancelada</option>
           </select>
         </div>

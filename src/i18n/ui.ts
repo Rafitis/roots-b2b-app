@@ -76,6 +76,7 @@ export const ui = {
         'cart.addressPlaceholder': 'Dirección',
         'cart.countryPlaceholder': 'País',
         'cart.regionPlaceholder': 'Región',
+        'cart.emailPlaceholder': 'Email',
         'cart.tax': 'Recargo Equivalencia',
 
         'fields.name': 'Nombre Fiscal',
@@ -150,6 +151,7 @@ export const ui = {
         'cart.addressPlaceholder': 'Address',
         'cart.countryPlaceholder': 'Country',
         'cart.regionPlaceholder': 'Region',
+        'cart.emailPlaceholder': 'Email',
         'cart.tax': 'Recargo Equivalencia',
 
         'fields.name': 'Legal Name',
