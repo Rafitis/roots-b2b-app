@@ -177,10 +177,10 @@ const CartPage = ({ DNI, IBAN}) => {
   const totals = useCartTotals(customerInfo, true);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto">
       {/* Banner de modo edición */}
       {isEditingMode && (
-        <div className="flex items-center justify-between gap-4 p-4 bg-info/5 border border-info/20 rounded-lg">
+        <div className="flex items-center justify-between gap-4 p-4 mb-6 bg-info/5 border border-info/20 rounded-lg">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
             <div>
@@ -203,55 +203,66 @@ const CartPage = ({ DNI, IBAN}) => {
         </div>
       )}
 
-      {/* Datos del cliente */}
-      <section>
-        <h2 className="section-heading mb-4">{t('cart.infoTitle')}</h2>
-        <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+        {/* Columna izquierda: Formulario + Tabla */}
+        <div className="space-y-8 min-w-0">
+          {/* Datos del cliente */}
+          <section>
+            <h2 className="section-heading mb-4">{t('cart.infoTitle')}</h2>
+            <ClientForm onStateChange={setCustomerInfo} initialData={customerInfo} />
+          </section>
 
-      {/* Tabla de items */}
-      <section>
-        <h2 className="section-heading mb-4">{t('table.title')}</h2>
-        <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
-      </section>
+          {/* Tabla de items */}
+          <section>
+            <h2 className="section-heading mb-4">{t('table.title')}</h2>
+            <ItemsTable items={cartItems} onDelete={handleDeleteItem} onUpdateQuantity={handleUpdateQuantity} />
+          </section>
+        </div>
 
-      {/* Resumen + acciones */}
-      <SummaryCheckout customerInfo={customerInfo} customDiscount={isEditingMode ? customDiscount : 0} />
+        {/* Columna derecha: Resumen del pedido (sticky) */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <h2 className="section-heading mb-4">{t('cart.orderSummary')}</h2>
+          <div className="card-b2b p-5">
+            <SummaryCheckout customerInfo={customerInfo} customDiscount={isEditingMode ? customDiscount : 0}>
+              {/* Descuento personalizado (solo admins en modo edición) */}
+              {isEditingMode && (
+                <CustomDiscountInput
+                  value={customDiscount}
+                  onChange={setCustomDiscount}
+                  maxAmount={totals.total_factura}
+                />
+              )}
 
-      {/* Descuento personalizado (solo admins en modo edición) */}
-      {isEditingMode && (
-        <CustomDiscountInput
-          value={customDiscount}
-          onChange={setCustomDiscount}
-          maxAmount={totals.total_factura}
-        />
-      )}
+              {/* Botón descargar factura */}
+              <Suspense fallback={
+                <button className="btn btn-primary btn-disabled w-full" disabled>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  Cargando...
+                </button>
+              }>
+                <InvoiceDownload
+                  items={cartItems}
+                  customerInfo={customerInfo}
+                  dni={DNI}
+                  iban={IBAN}
+                  totals={totals}
+                  isEditingMode={isEditingMode}
+                  editingInvoiceId={editingInvoiceId}
+                  customDiscount={isEditingMode ? customDiscount : 0}
+                />
+              </Suspense>
 
-      <div className="flex items-center justify-between gap-4 pb-8">
-        <Suspense fallback={
-          <button className="btn btn-primary btn-disabled" disabled>
-            <span className="loading loading-spinner loading-sm"></span>
-            Cargando...
-          </button>
-        }>
-          <InvoiceDownload
-            items={cartItems}
-            customerInfo={customerInfo}
-            dni={DNI}
-            iban={IBAN}
-            totals={totals}
-            isEditingMode={isEditingMode}
-            editingInvoiceId={editingInvoiceId}
-            customDiscount={isEditingMode ? customDiscount : 0}
-          />
-        </Suspense>
-        <button
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-error border border-error/20 rounded-md hover:bg-error/5 transition-colors"
-          onClick={handleDeleteAll}
-        >
-          <Trash2 className="w-4 h-4" />
-          {t('global.delete')}
-        </button>
+              {/* Botón vaciar carrito */}
+              <button
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-error border border-error/20 rounded-md hover:bg-error/5 transition-colors"
+                onClick={handleDeleteAll}
+              >
+                <Trash2 className="w-4 h-4" />
+                {t('global.delete')}
+              </button>
+            </SummaryCheckout>
+          </div>
+        </div>
       </div>
     </div>
   );

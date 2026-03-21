@@ -198,8 +198,10 @@ const InvoicePDF = ({ items = [], dni, iban, selectedCustomer, onlyPage = false,
               const price = Number(item.price);
               const discount = Number(item.discount);
               const quantity = Number(item.quantity);
-              const finalUnitPrice = (price * (1 - discount / 100)).toFixed(2);
-              const totalPrice = (price * (1 - discount / 100) * quantity).toFixed(2);
+              const finalUnitPriceNum = Math.round((price * (1 - discount / 100)) * 100) / 100;
+              const totalPriceNum = Math.round((finalUnitPriceNum * quantity) * 100) / 100;
+              const finalUnitPrice = finalUnitPriceNum.toFixed(2);
+              const totalPrice = totalPriceNum.toFixed(2);
               return (
                 <View key={item.id} style={styles.row}>
                   <Text style={styles.cell}>{item.name}</Text>

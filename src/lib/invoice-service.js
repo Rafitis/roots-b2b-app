@@ -11,8 +11,11 @@
 export function isValidNIF(nif) {
   if (!nif || typeof nif !== 'string') return false;
 
-  const nifRegex = /^[0-9A-Za-z]{9}$/;
-  return nifRegex.test(nif.toUpperCase());
+  const cleaned = nif.trim();
+  if (cleaned.length === 0) return false;
+
+  // Solo caracteres alfanuméricos, sin longitud fija
+  return /^[0-9A-Za-z]+$/.test(cleaned);
 }
 
 /**

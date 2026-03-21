@@ -287,6 +287,13 @@ const InvoiceDownload = ({
       return;
     }
 
+    // Validar que el NIF/CIF solo contenga caracteres alfanuméricos
+    if (!/^[0-9A-Za-z]+$/.test(customerInfo.nif_cif.trim())) {
+      e.preventDefault();
+      toast.error('El NIF/CIF solo puede contener letras y números');
+      return;
+    }
+
     // Generar PDF y guardarlo en servidor
     if (!isSaving) {
       try {
@@ -327,7 +334,7 @@ const InvoiceDownload = ({
     <ErrorBoundary>
       <button
         type="button"
-        className="btn btn-primary hover:scale-105 text-white"
+        className="btn btn-primary hover:scale-105 text-white w-full"
         onClick={handleDownloadClick}
         disabled={isSaving}
       >
