@@ -2,7 +2,7 @@
  * InvoiceTable - Tabla de facturas con paginación
  */
 
-import { Download, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Edit, Trash2, ChevronLeft, ChevronRight, SendHorizonal } from 'lucide-react';
 import { useState } from 'react';
 
 export default function InvoiceTable({
@@ -16,7 +16,9 @@ export default function InvoiceTable({
   onDownload,
   onEdit,
   onDelete,
-  onUpdateShopifyNumber
+  onUpdateShopifyNumber,
+  onCreateDraft,
+  creatingDraftId
 }) {
   
   const [editingShopifyNumbers, setEditingShopifyNumbers] = useState({});
@@ -177,16 +179,25 @@ export default function InvoiceTable({
                 </td>
 
                 <td className="px-4 py-3">
-                  <div className="flex gap-1 justify-center">
-                    <button
-                      onClick={() => onDownload(invoice.id, invoice.invoice_number, invoice.company_name)}
-                      disabled={loading}
-                      className="p-1.5 rounded text-roots-clay hover:text-roots-bark hover:bg-base-200 disabled:opacity-40 transition-colors"
-                      title="Descargar PDF"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    {invoice.status !== 'cancelled' && (
+                  <div className="flex gap-1 justify-center w-[136px]">
+                    {/* Crear Draft — solo pending_review, skeleton si no aplica */}
+                    {invoice.status === 'pending_review' ? (
+                      <button
+                        onClick={() => onCreateDraft(invoice)}
+                        disabled={loading || creatingDraftId === invoice.id}
+                        className="p-1.5 rounded text-info hover:text-info hover:bg-info/10 disabled:opacity-40 transition-colors"
+                        title="Crear Draft Order en Shopify"
+                      >
+                        {creatingDraftId === invoice.id
+                          ? <span className="loading loading-spinner loading-xs" />
+                          : <SendHorizonal className="w-4 h-4" />
+                        }
+                      </button>
+                    ) : (
+                      <span className="w-7 h-7 shrink-0" />
+                    )}
+                    {/* Editar — no en cancelled, skeleton si no aplica */}
+                    {invoice.status !== 'cancelled' ? (
                       <button
                         onClick={() => onEdit(invoice.id)}
                         disabled={loading}
@@ -195,7 +206,19 @@ export default function InvoiceTable({
                       >
                         <Edit className="w-4 h-4" />
                       </button>
+                    ) : (
+                      <span className="w-7 h-7 shrink-0" />
                     )}
+                    {/* Descargar PDF — siempre visible */}
+                    <button
+                      onClick={() => onDownload(invoice.id, invoice.invoice_number, invoice.company_name)}
+                      disabled={loading}
+                      className="p-1.5 rounded text-roots-clay hover:text-roots-bark hover:bg-base-200 disabled:opacity-40 transition-colors"
+                      title="Descargar PDF"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    {/* Eliminar — siempre visible */}
                     <button
                       onClick={() => onDelete(invoice.id, invoice.invoice_number)}
                       disabled={loading}

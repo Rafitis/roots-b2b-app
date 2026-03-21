@@ -33,7 +33,8 @@ test("calcula el total del carrito con descuento", async () => {
     const countryCode = "ES";
     itemsStore.set([...cart, ...mockCart]);
     const {total_sin_iva} = await import("@hooks/useCart").then((module) => module.calculateTotals({countryCode}));
-    assert.equal(total_sin_iva.toFixed(2), 219.02);
+    // Redondeo por línea (consistente con Shopify): 218.98
+    assert.equal(total_sin_iva.toFixed(2), "218.98");
 });
 
 test("calcula el total del carrito sin descuento", async () => {

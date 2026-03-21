@@ -264,6 +264,9 @@ export function calculateTotals({
   }
 
   // 1. Calcular base sin IVA (descontando descuentos ya aplicados)
+  //    Redondeo por línea para mantener consistencia con Shopify y PDF:
+  //    - precio_unitario_descuento = roundEUR(price * (1 - discount))
+  //    - total_linea = roundEUR(precio_unitario_descuento * quantity)
   const total_sin_iva = items.reduce((acc, item) => {
     if (!isValidQuantity(item.quantity) || !isValidAmount(item.price)) {
       console.warn(`[WARN] Invalid item:`, item);
@@ -271,30 +274,32 @@ export function calculateTotals({
     }
 
     const discountFactor = 1 - ((item.discount || 0) / 100);
-    return acc + (item.quantity * item.price * discountFactor);
+    const unitPriceWithDiscount = roundEUR(item.price * discountFactor);
+    const lineTotal = roundEUR(item.quantity * unitPriceWithDiscount);
+    return roundEUR(acc + lineTotal);
   }, 0);
 
   // 2. Calcular IVA
   const vatRate = getVATRate(countryCode);
-  const iva = calculateVAT(total_sin_iva, countryCode);
+  const iva = roundEUR(calculateVAT(total_sin_iva, countryCode));
 
   // 3. Calcular recargo (equivalencia)
-  const recargo = calculateRecharge(total_sin_iva, applyRecharge);
+  const recargo = roundEUR(calculateRecharge(total_sin_iva, applyRecharge));
 
   // 4. Calcular envío
   // El envío se basa en (total_sin_iva + iva) según el negocio
-  const subtotalWithVAT = total_sin_iva + iva;
+  const subtotalWithVAT = roundEUR(total_sin_iva + iva);
   const shipping = includeShipping ? calculateShipping(countryCode, subtotalWithVAT) : 0;
 
   // 5. Total final
-  const total_factura = total_sin_iva + iva + recargo + shipping;
+  const total_factura = roundEUR(total_sin_iva + iva + recargo + shipping);
 
   return {
-    total_sin_iva: Math.round(total_sin_iva * 100) / 100,
-    iva: Math.round(iva * 100) / 100,
-    recargo: Math.round(recargo * 100) / 100,
-    shipping: Math.round(shipping * 100) / 100,
-    total_factura: Math.round(total_factura * 100) / 100,
+    total_sin_iva: roundEUR(total_sin_iva),
+    iva: roundEUR(iva),
+    recargo: roundEUR(recargo),
+    shipping: roundEUR(shipping),
+    total_factura: roundEUR(total_factura),
     vatRate: vatRate
   };
 }

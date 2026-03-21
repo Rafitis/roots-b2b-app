@@ -310,6 +310,43 @@ export default function AdminInvoices() {
     }
   };
 
+  // ID de la factura que está creando un draft (para spinner individual)
+  const [creatingDraftId, setCreatingDraftId] = useState(null);
+
+  /**
+   * Crear Draft Order en Shopify para una factura pending_review
+   */
+  const handleCreateDraft = async (invoice) => {
+    setCreatingDraftId(invoice.id);
+    try {
+      const response = await fetch(`/api/invoices/${invoice.id}/create-draft`, {
+        method: 'POST'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al crear Draft Order');
+        return;
+      }
+
+      // Actualizar estado local
+      setInvoices(invoices.map(inv =>
+        inv.id === invoice.id
+          ? { ...inv, status: 'shopify_draft', shopify_draft_order_name: data.draft_order_name }
+          : inv
+      ));
+
+      toast.success(`Draft Order ${data.draft_order_name} creado en Shopify`);
+
+    } catch (error) {
+      console.error('Error creating draft order:', error);
+      toast.error('Error al crear Draft Order');
+    } finally {
+      setCreatingDraftId(null);
+    }
+  };
+
   /**
    * Actualizar número de Shopify
    * Soporta actualizar o eliminar (con string vacío)
@@ -371,6 +408,8 @@ export default function AdminInvoices() {
           onEdit={handleEditInvoice}
           onDelete={handleDeleteInvoice}
           onUpdateShopifyNumber={handleUpdateShopifyNumber}
+          onCreateDraft={handleCreateDraft}
+          creatingDraftId={creatingDraftId}
         />
 
         {/* Acciones de bulk */}

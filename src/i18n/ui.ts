@@ -71,6 +71,7 @@ export const ui = {
         'product.pricePerUnit': 'Precio por Unidad',
 
         'cart.infoTitle': 'Información del Cliente',
+        'cart.orderSummary': 'Resumen del Pedido',
         'cart.namePlaceholder': 'Nombre Fiscal',
         'cart.nifPlaceholder': 'NIF o CIF',
         'cart.addressPlaceholder': 'Dirección',
@@ -146,6 +147,7 @@ export const ui = {
         'product.pricePerUnit': 'Price per Unit',
 
         'cart.infoTitle': 'Customer Information',
+        'cart.orderSummary': 'Order Summary',
         'cart.namePlaceholder': 'Legal Name',
         'cart.nifPlaceholder': 'TIN',
         'cart.addressPlaceholder': 'Address',

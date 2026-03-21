@@ -9,7 +9,7 @@
  * - date_to: Fecha fin (YYYY-MM-DD)
  * - nif: NIF/CIF a buscar
  * - company: Nombre de empresa a buscar
- * - status: Estado (draft, finalized, rehashed, cancelled)
+ * - status: Estado (pending_review, shopify_draft, completed, cancelled)
  * - page: Número de página (default: 1)
  * - per_page: Resultados por página (default: 50, max: 100)
  */
