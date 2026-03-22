@@ -30,10 +30,13 @@ const isAdmin = Astro.locals.isAdmin ?? false;
 		</script>
   </head>
   <body class="min-h-screen flex flex-col">
+		<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-roots-bark focus:text-roots-sand focus:rounded-md focus:text-sm focus:font-medium">
+			Saltar al contenido principal
+		</a>
 		<Header client:only transition:persist />
 
     <!-- Contenido principal con margen top para el header fijo -->
-    <main class="flex-1 p-2 pt-24">
+    <main id="main-content" class="flex-1 px-4 md:px-6 lg:px-8 pt-24 pb-6">
       <slot />
     </main>	
 

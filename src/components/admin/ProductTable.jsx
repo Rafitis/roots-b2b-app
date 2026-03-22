@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, RotateCcw, RefreshCw, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 /**
  * Tabla de productos con edición inline
  */
-export default function ProductTable({ products, onUpdateProduct, onResetProduct, onSyncProduct }) {
+export default function ProductTable({ products, loading, onUpdateProduct, onResetProduct, onSyncProduct }) {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -50,7 +51,7 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
       } else {
         const price = parseFloat(value);
         if (isNaN(price) || price < 0) {
-          alert('El precio debe ser un número positivo');
+          toast.error('El precio debe ser un número positivo');
           return;
         }
         value = price;
@@ -71,7 +72,7 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
       setEditingCell(null);
       setEditValue('');
     } else {
-      alert(`Error: ${result.error}`);
+      toast.error(result.error);
     }
   };
 
@@ -83,7 +84,7 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
     setSavingProduct(null);
 
     if (!result.success) {
-      alert(`Error: ${result.error}`);
+      toast.error(result.error);
     }
   };
 
@@ -93,7 +94,7 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
     setSavingProduct(null);
 
     if (!result.success) {
-      alert(`Error: ${result.error}`);
+      toast.error(result.error);
     }
   };
 
@@ -163,6 +164,45 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
     );
   };
 
+  if (loading && products.length === 0) {
+    return (
+      <div className="card-b2b overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-base-200/60">
+              <tr>
+                <th className="py-3 px-4 w-10"><div className="skeleton h-4 w-4 rounded bg-base-200" /></th>
+                <th className="py-3 px-4 w-16"><div className="skeleton h-3 w-12 rounded bg-base-200" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-10 rounded bg-base-200" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-20 rounded bg-base-200" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-12 rounded bg-base-200 mx-auto" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-12 rounded bg-base-200 mx-auto" /></th>
+                <th className="py-3 px-4"><div className="skeleton h-3 w-16 rounded bg-base-200 mx-auto" /></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-base-300/40">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="py-3 px-4"><div className="skeleton h-4 w-4 rounded bg-base-200" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-12 w-12 rounded bg-base-200" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-4 w-32 rounded bg-base-200" /></td>
+                  <td className="py-3 px-4"><div className="flex gap-1"><div className="skeleton h-4 w-14 rounded bg-base-200" /><div className="skeleton h-4 w-10 rounded bg-base-200" /></div></td>
+                  <td className="py-3 px-4"><div className="skeleton h-4 w-16 rounded bg-base-200 ml-auto" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-4 w-14 rounded bg-base-200 ml-auto" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-5 w-10 rounded bg-base-200 mx-auto" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-5 w-9 rounded-full bg-base-200 mx-auto" /></td>
+                  <td className="py-3 px-4"><div className="skeleton h-4 w-16 rounded bg-base-200 mx-auto" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   if (products.length === 0) {
     return (
       <div className="card-b2b p-12 text-center">
@@ -225,17 +265,22 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                         onClick={() => toggleExpand(product.shopify_product_id)}
                         className="p-0.5 text-roots-clay hover:text-roots-bark transition-colors"
                         disabled={isSaving}
+                        aria-label={isExpanded ? 'Contraer variantes' : 'Expandir variantes'}
+                        aria-expanded={isExpanded}
                       >
-                        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        {isExpanded ? <ChevronDown className="w-4 h-4" aria-hidden="true" /> : <ChevronRight className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </td>
 
                     <td className="py-3 px-4">
                       {product.imagen && (
                         <img
-                          src={product.imagen}
+                          src={`${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=96`}
                           alt={product.shopify_name}
                           className="w-12 h-12 object-cover border border-base-300 rounded"
+                          loading="lazy"
+                          width={48}
+                          height={48}
                         />
                       )}
                     </td>
@@ -257,14 +302,16 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                           <button
                             onClick={() => saveEdit(product)}
                             className="p-1.5 bg-success text-success-content rounded hover:opacity-90 transition-opacity"
+                            aria-label="Guardar nombre"
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                           <button
                             onClick={cancelEdit}
                             className="p-1.5 text-roots-clay hover:bg-base-200 rounded transition-colors"
+                            aria-label="Cancelar edición"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                         </div>
                       ) : (
@@ -318,14 +365,16 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                           <button
                             onClick={() => saveEdit(product)}
                             className="p-1.5 bg-success text-success-content rounded hover:opacity-90 transition-opacity"
+                            aria-label="Guardar precio"
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                           <button
                             onClick={cancelEdit}
                             className="p-1.5 text-roots-clay hover:bg-base-200 rounded transition-colors"
+                            aria-label="Cancelar edición"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                         </div>
                       ) : (
@@ -368,6 +417,9 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                           'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
                           product.is_visible ? 'bg-success' : 'bg-base-300'
                         ].join(' ')}
+                        role="switch"
+                        aria-checked={product.is_visible}
+                        aria-label={product.is_visible ? 'Ocultar producto' : 'Mostrar producto'}
                       >
                         <span
                           className={[
@@ -385,8 +437,9 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                           disabled={isSaving}
                           className="p-1.5 text-roots-clay hover:text-primary hover:bg-primary/10 rounded transition-colors"
                           title="Sincronizar este producto"
+                          aria-label="Sincronizar este producto"
                         >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isSaving ? 'animate-spin' : ''}`} />
+                          <RefreshCw className={`w-3.5 h-3.5 ${isSaving ? 'animate-spin' : ''}`} aria-hidden="true" />
                         </button>
                         {hasOverride && (
                           <button
@@ -394,8 +447,9 @@ export default function ProductTable({ products, onUpdateProduct, onResetProduct
                             disabled={isSaving}
                             className="p-1.5 text-roots-clay hover:text-error hover:bg-error/10 rounded transition-colors"
                             title="Resetear a valores de Shopify"
+                            aria-label="Resetear a valores de Shopify"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                         )}
                       </div>

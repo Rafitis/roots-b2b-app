@@ -42,13 +42,25 @@ export default function Header() {
   const invoicesUrl = currentLang === 'en' ? '/en/admin/invoices' : '/admin/invoices';
   const adminProductsUrl = currentLang === 'en' ? '/en/admin/products' : '/admin/products';
 
+  const [pathname, setPathname] = useState(() =>
+    typeof window !== 'undefined' ? window.location.pathname : ''
+  );
+
+  useEffect(() => {
+    const updatePath = () => setPathname(window.location.pathname);
+    document.addEventListener('astro:after-swap', updatePath);
+    return () => document.removeEventListener('astro:after-swap', updatePath);
+  }, []);
+
+  const isActive = (url) => pathname === url || pathname === url + '/';
+
   return (
     <header
       className={[
         'fixed top-0 w-full z-50 transition-all duration-200 ease-out',
         'px-6 lg:px-10',
         isScrolled
-          ? 'h-16 bg-base-100/95 backdrop-blur-sm shadow-soft'
+          ? 'h-16 bg-base-100/95 backdrop-blur-sm shadow-lifted'
           : 'h-20 bg-base-100',
       ].join(' ')}
     >
@@ -71,16 +83,20 @@ export default function Header() {
             <>
               <a
                 href={invoicesUrl}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(invoicesUrl) ? 'text-roots-bark bg-base-200' : 'text-roots-earth hover:text-roots-bark hover:bg-base-200'}`}
+                aria-label={t('nav.invoices') || 'Facturas'}
+                {...(isActive(invoicesUrl) && { 'aria-current': 'page' })}
               >
-                <BarChart3 className="h-4 w-4" />
+                <BarChart3 className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden md:inline">{t('nav.invoices') || 'Facturas'}</span>
               </a>
               <a
                 href={adminProductsUrl}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(adminProductsUrl) ? 'text-roots-bark bg-base-200' : 'text-roots-earth hover:text-roots-bark hover:bg-base-200'}`}
+                aria-label={t('nav.management') || 'Gestionar productos'}
+                {...(isActive(adminProductsUrl) && { 'aria-current': 'page' })}
               >
-                <Package className="h-4 w-4" />
+                <Package className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden md:inline">{t('nav.management') || 'Gestionar'}</span>
               </a>
               <div className="w-px h-5 bg-base-300 mx-1" />
@@ -89,16 +105,19 @@ export default function Header() {
 
           <a
             href={productsUrl}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(productsUrl) ? 'text-roots-bark bg-base-200' : 'text-roots-earth hover:text-roots-bark hover:bg-base-200'}`}
+            {...(isActive(productsUrl) && { 'aria-current': 'page' })}
           >
             {t('nav.products')}
           </a>
 
           <a
             href={cartUrl}
-            className="relative flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-roots-earth hover:text-roots-bark hover:bg-base-200 transition-colors"
+            className={`relative flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(cartUrl) ? 'text-roots-bark bg-base-200' : 'text-roots-earth hover:text-roots-bark hover:bg-base-200'}`}
+            aria-label={t('nav.cart') || 'Carrito'}
+            {...(isActive(cartUrl) && { 'aria-current': 'page' })}
           >
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-4 w-4" aria-hidden="true" />
             <span className="hidden md:inline">{t('nav.cart')}</span>
             {cartCount > 0 && (
               <span className="absolute -top-0.5 left-6 md:relative md:top-0 md:left-0 min-w-[18px] h-[18px] flex items-center justify-center bg-roots-bark text-roots-sand text-[10px] font-bold rounded-full px-1">

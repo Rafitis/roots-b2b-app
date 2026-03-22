@@ -125,10 +125,18 @@ export function ProductCard({ product }) {
         {product.imagen && (
           <div className="aspect-square bg-base-200/50 overflow-hidden">
             <img
-              src={product.imagen}
+              src={`${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=400`}
+              srcSet={[
+                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=300 300w`,
+                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=400 400w`,
+                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=600 600w`,
+              ].join(', ')}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               alt={product.nombre}
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               loading="lazy"
+              width={400}
+              height={400}
             />
           </div>
         )}
@@ -201,7 +209,7 @@ export function ProductCard({ product }) {
                   className="w-16 h-8 text-sm text-center border border-base-300 rounded bg-base-100 focus:border-roots-clay focus:outline-none transition-colors tabular-nums"
                 />
               </div>
-              <div className="text-[11px] text-roots-clay text-right whitespace-nowrap">
+              <div className="text-[11px] text-roots-clay text-right whitespace-nowrap tabular-nums">
                 *{t('product.pricePerUnit')}: {unitPrice} €
               </div>
             </div>
@@ -234,8 +242,17 @@ export function ProductsByTag({ catalog }) {
       });
       return acc;
     }, {});
+    const TAG_ORDER = ['ROOTS CARE', 'CALCETINES', 'CALZADO'];
     const orderedTags = Object.keys(groups)
-      .filter(tag => tag.toLowerCase() !== 'bundle');
+      .filter(tag => tag.toLowerCase() !== 'bundle')
+      .sort((a, b) => {
+        const aIdx = TAG_ORDER.indexOf(a.toUpperCase());
+        const bIdx = TAG_ORDER.indexOf(b.toUpperCase());
+        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+        if (aIdx !== -1) return -1;
+        if (bIdx !== -1) return 1;
+        return a.localeCompare(b, 'es');
+      });
     if (groups['bundle']) orderedTags.push('bundle');
     return { groups, orderedTags };
   }, [catalog]);

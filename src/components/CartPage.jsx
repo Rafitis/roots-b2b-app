@@ -1,6 +1,6 @@
 // src/components/CartPage.jsx
-import { useState, useEffect, lazy, Suspense } from "react";
-import { Trash2, AlertCircle, Plus } from "lucide-react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { Trash2, AlertCircle, Plus, ChevronUp } from "lucide-react";
 import ClientForm from "./ClientForm";
 import ItemsTable from "./ItemsTable";
 import SummaryCheckout from "@components/SummaryCheckout";
@@ -176,8 +176,27 @@ const CartPage = ({ DNI, IBAN}) => {
 
   const totals = useCartTotals(customerInfo, true);
 
+  // Detectar si el sidebar de resumen es visible (para mostrar/ocultar bottom bar mobile)
+  const sidebarRef = useRef(null);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setSidebarVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSidebar = () => {
+    sidebarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pb-20 lg:pb-0">
       {/* Banner de modo edición */}
       {isEditingMode && (
         <div className="flex items-center justify-between gap-4 p-4 mb-6 bg-info/5 border border-info/20 rounded-lg">
@@ -220,7 +239,7 @@ const CartPage = ({ DNI, IBAN}) => {
         </div>
 
         {/* Columna derecha: Resumen del pedido (sticky) */}
-        <div className="lg:sticky lg:top-6 lg:self-start">
+        <div ref={sidebarRef} className="lg:sticky lg:top-6 lg:self-start">
           <h2 className="section-heading mb-4">{t('cart.orderSummary')}</h2>
           <div className="card-b2b p-5">
             <SummaryCheckout customerInfo={customerInfo} customDiscount={isEditingMode ? customDiscount : 0}>
@@ -264,6 +283,27 @@ const CartPage = ({ DNI, IBAN}) => {
           </div>
         </div>
       </div>
+
+      {/* Bottom bar mobile — visible solo cuando el sidebar no está en pantalla */}
+      {cartItems.length > 0 && !sidebarVisible && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-base-100 border-t border-base-300 shadow-overlay px-4 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div>
+              <p className="text-xs text-roots-earth">{t('invoice.total.total')}</p>
+              <p className="text-lg font-bold text-roots-bark tabular-nums">
+                {Math.max(0, totals.total_factura - (isEditingMode ? customDiscount : 0)).toFixed(2)} €
+              </p>
+            </div>
+            <button
+              onClick={scrollToSidebar}
+              className="btn btn-primary btn-sm gap-1.5"
+            >
+              <ChevronUp className="w-4 h-4" aria-hidden="true" />
+              {t('cart.orderSummary') || 'Ver resumen'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

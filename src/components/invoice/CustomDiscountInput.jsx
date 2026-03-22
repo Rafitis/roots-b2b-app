@@ -82,6 +82,8 @@ export default function CustomDiscountInput({ value, onChange, maxAmount }) {
                 onBlur={handleBlur}
                 placeholder="0.00"
                 className="input input-sm input-bordered w-28 text-right pr-6 tabular-nums"
+                aria-invalid={!!error}
+                aria-describedby={error ? 'discount-error' : undefined}
               />
               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-base-content/50 pointer-events-none">
                 €
@@ -89,10 +91,10 @@ export default function CustomDiscountInput({ value, onChange, maxAmount }) {
             </div>
           </div>
           {error && (
-            <p className="text-xs text-error">{error}</p>
+            <p id="discount-error" className="text-xs text-error" role="alert">{error}</p>
           )}
           {value > 0 && !error && (
-            <p className="text-xs text-success">
+            <p className="text-xs text-success" aria-live="polite">
               Descuento de {value.toFixed(2)} € aplicado
             </p>
           )}

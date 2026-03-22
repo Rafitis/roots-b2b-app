@@ -2,7 +2,7 @@
  * InvoiceTable - Tabla de facturas con paginación
  */
 
-import { Download, Edit, Trash2, ChevronLeft, ChevronRight, SendHorizonal } from 'lucide-react';
+import { Download, Edit, Trash2, ChevronLeft, ChevronRight, SendHorizonal, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 export default function InvoiceTable({
@@ -59,21 +59,53 @@ export default function InvoiceTable({
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      pending_review: { classes: 'bg-warning/10 text-warning', label: 'Pendiente' },
-      shopify_draft: { classes: 'bg-info/10 text-info', label: 'Draft Creado' },
-      completed: { classes: 'bg-success/10 text-success', label: 'Completada' },
-      cancelled: { classes: 'bg-error/10 text-error', label: 'Cancelada' },
+      pending_review: { classes: 'bg-warning/10 text-warning', label: 'Pendiente', Icon: Clock },
+      shopify_draft: { classes: 'bg-info/10 text-info', label: 'Draft Creado', Icon: FileText },
+      completed: { classes: 'bg-success/10 text-success', label: 'Completada', Icon: CheckCircle },
+      cancelled: { classes: 'bg-error/10 text-error', label: 'Cancelada', Icon: XCircle },
       // Legacy: facturas anteriores al nuevo sistema de estados
-      finalized: { classes: 'bg-success/10 text-success', label: 'Finalizada' }
+      finalized: { classes: 'bg-success/10 text-success', label: 'Finalizada', Icon: CheckCircle }
     };
     return statusMap[status] || statusMap.pending_review;
   };
 
   if (loading && invoices.length === 0) {
     return (
-      <div className="card-b2b p-12 text-center">
-        <span className="loading loading-spinner loading-md text-roots-clay"></span>
-        <p className="text-sm text-roots-clay mt-2">Cargando facturas...</p>
+      <div className="card-b2b overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-base-200/60">
+              <tr className="text-left text-xs font-medium text-roots-earth uppercase tracking-wider">
+                <th className="w-10 px-4 py-3"><div className="skeleton h-4 w-4 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-20 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-10 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-14 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-20 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-base-300/40">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-4 rounded bg-base-200" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-20 rounded bg-base-200" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-28 rounded bg-base-200" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-8 rounded bg-base-200 mx-auto" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-20 rounded bg-base-200" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-20 rounded bg-base-200" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-16 rounded bg-base-200 ml-auto" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-24 rounded bg-base-200 mx-auto" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-5 w-20 rounded bg-base-200 mx-auto" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-24 rounded bg-base-200 mx-auto" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
@@ -171,7 +203,8 @@ export default function InvoiceTable({
                   {(() => {
                     const s = getStatusBadge(invoice.status);
                     return (
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${s.classes}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${s.classes}`}>
+                        <s.Icon className="w-3 h-3" aria-hidden="true" />
                         {s.label}
                       </span>
                     );
@@ -187,10 +220,11 @@ export default function InvoiceTable({
                         disabled={loading || creatingDraftId === invoice.id}
                         className="p-1.5 rounded text-info hover:text-info hover:bg-info/10 disabled:opacity-40 transition-colors"
                         title="Crear Draft Order en Shopify"
+                        aria-label="Crear Draft Order en Shopify"
                       >
                         {creatingDraftId === invoice.id
-                          ? <span className="loading loading-spinner loading-xs" />
-                          : <SendHorizonal className="w-4 h-4" />
+                          ? <span className="loading loading-spinner loading-xs" aria-label="Creando..." />
+                          : <SendHorizonal className="w-4 h-4" aria-hidden="true" />
                         }
                       </button>
                     ) : (
@@ -203,8 +237,9 @@ export default function InvoiceTable({
                         disabled={loading}
                         className="p-1.5 rounded text-roots-clay hover:text-roots-bark hover:bg-base-200 disabled:opacity-40 transition-colors"
                         title="Editar factura"
+                        aria-label="Editar factura"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4" aria-hidden="true" />
                       </button>
                     ) : (
                       <span className="w-7 h-7 shrink-0" />
@@ -215,8 +250,9 @@ export default function InvoiceTable({
                       disabled={loading}
                       className="p-1.5 rounded text-roots-clay hover:text-roots-bark hover:bg-base-200 disabled:opacity-40 transition-colors"
                       title="Descargar PDF"
+                      aria-label="Descargar PDF"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-4 h-4" aria-hidden="true" />
                     </button>
                     {/* Eliminar — siempre visible */}
                     <button
@@ -224,8 +260,9 @@ export default function InvoiceTable({
                       disabled={loading}
                       className="p-1.5 rounded text-roots-clay hover:text-error hover:bg-error/10 disabled:opacity-40 transition-colors"
                       title="Eliminar factura"
+                      aria-label="Eliminar factura"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 </td>
@@ -251,8 +288,9 @@ export default function InvoiceTable({
               onClick={() => onPageChange(pagination.page - 1)}
               disabled={pagination.page <= 1 || loading}
               className="p-1.5 rounded text-roots-earth hover:text-roots-bark hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Página anterior"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </button>
 
             {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((pageNum) => (
@@ -275,8 +313,9 @@ export default function InvoiceTable({
               onClick={() => onPageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.total_pages || loading}
               className="p-1.5 rounded text-roots-earth hover:text-roots-bark hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Página siguiente"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
