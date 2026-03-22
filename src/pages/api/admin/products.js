@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { isUserAdmin } from '@lib/auth.js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /**
  * API de administración de productos
@@ -29,18 +28,13 @@ const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || i
  *   }]
  * }
  */
-export async function GET({ request }) {
+export async function GET({ locals }) {
   try {
-    // Verificar que el usuario es admin
-    const isAdmin = await isUserAdmin(request);
-    if (!isAdmin) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Unauthorized: Admin access required' 
-        }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    // Guard de seguridad (defensa en profundidad, middleware ya verifica)
+    if (!locals.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Inicializar cliente Supabase
@@ -131,19 +125,14 @@ export async function GET({ request }) {
  *   product: { ... }
  * }
  */
-export async function PUT({ request }) {
+export async function PUT({ request, locals }) {
   try {
-    // Verificar que el usuario es admin
-    const isAdmin = await isUserAdmin(request);
-    if (!isAdmin) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Unauthorized: Admin access required' 
-        }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!locals.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
     }
+    // Admin verificado por middleware
 
     // Leer y validar body
     const body = await request.json();
@@ -244,18 +233,12 @@ export async function PUT({ request }) {
  *   product: { ... }
  * }
  */
-export async function DELETE({ request }) {
+export async function DELETE({ request, locals }) {
   try {
-    // Verificar que el usuario es admin
-    const isAdmin = await isUserAdmin(request);
-    if (!isAdmin) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Unauthorized: Admin access required' 
-        }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!locals.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Leer y validar query params

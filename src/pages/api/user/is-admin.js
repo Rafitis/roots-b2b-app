@@ -5,7 +5,7 @@ export const prerender = false;
 export const GET = async ({ request }) => {
   try {
     const supabaseUrl = import.meta.env.SUPABASE_URL;
-    const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
+    const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(JSON.stringify({ isAdmin: false }), {

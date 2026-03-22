@@ -22,12 +22,12 @@ import InvoicePDFServer from '@components/invoice/InvoicePDFServer.jsx';
 import { ui } from '@i18n/ui.ts';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
+const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 const rootsDni = import.meta.env.ROOTS_DNI;
 const rootsIban = import.meta.env.ROOTS_IBAN;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Faltan variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_KEY');
+  throw new Error('Faltan variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
 }
 
 if (!rootsDni || !rootsIban) {

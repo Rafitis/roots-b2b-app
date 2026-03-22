@@ -17,6 +17,7 @@ export default defineConfig({
     '/': '/main-view',
     '/en': '/en/main-view'
   },
+  prefetch: false,
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],

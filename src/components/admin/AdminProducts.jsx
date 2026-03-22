@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import ProductFilters from './ProductFilters.jsx';
 import ProductTable from './ProductTable.jsx';
@@ -23,9 +23,12 @@ export default function AdminProducts() {
     visibility: 'all' // all | visible | hidden
   });
   const [syncing, setSyncing] = useState(false);
+  const hasFetched = useRef(false);
 
-  // Fetch productos al montar
+  // Fetch productos al montar (una sola vez)
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     fetchProducts();
   }, []);
 

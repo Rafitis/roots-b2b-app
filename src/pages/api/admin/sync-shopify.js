@@ -1,22 +1,16 @@
-import { isUserAdmin } from '@lib/auth.js';
-
 const CRON_SECRET = import.meta.env.CRON_SECRET;
 
 /**
  * POST /api/admin/sync-shopify
  * Lanza una sincronizacion manual con Shopify (solo admins)
+ * Admin verificado por middleware
  */
-export async function POST({ request }) {
+export async function POST({ request, locals }) {
   try {
-    const isAdmin = await isUserAdmin(request);
-    if (!isAdmin) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Unauthorized: Admin access required'
-        }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!locals.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     if (!CRON_SECRET) {
