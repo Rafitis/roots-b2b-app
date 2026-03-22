@@ -8,7 +8,8 @@
  * - Descarga de facturas
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { navigate } from 'astro:transitions/client';
 import toast from 'react-hot-toast';
 import InvoiceFilters from './InvoiceFilters';
 import InvoiceTable from './InvoiceTable';
@@ -35,6 +36,9 @@ export default function AdminInvoices() {
 
   // Estado de selección (para bulk download)
   const [selectedInvoices, setSelectedInvoices] = useState(new Set());
+
+  // Guard contra doble-mount de React StrictMode en dev
+  const hasFetched = useRef(false);
 
   /**
    * Cargar facturas desde el endpoint
@@ -79,15 +83,17 @@ export default function AdminInvoices() {
     }
   };
 
-  // Cargar facturas al montar el componente (primera vez)
+  // Cargar facturas al montar el componente (una sola vez)
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     loadInvoices(1);
   }, []);
 
   // Cargar facturas cuando cambian los filtros (volver a página 1)
   useEffect(() => {
     if (Object.values(filters).some(v => v)) {
-      loadInvoices(1); // Solo recargar si hay filtros activos
+      loadInvoices(1);
     }
   }, [filters]);
 
@@ -267,7 +273,7 @@ export default function AdminInvoices() {
       toast.success(`Factura ${data.original_invoice_number} copiada al carrito`);
 
       // Redirigir a /carrito
-      window.location.href = '/carrito';
+      navigate('/carrito');
 
     } catch (error) {
       console.error('Error editing invoice:', error);

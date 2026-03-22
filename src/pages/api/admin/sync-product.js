@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { isUserAdmin } from '@lib/auth.js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 const SHOPIFY_API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
 const API_VERSION = "2025-04";
@@ -10,21 +9,19 @@ const API_VERSION = "2025-04";
 /**
  * POST /api/admin/sync-product
  * Sincroniza un único producto de Shopify → Supabase
- * 
+ * Admin verificado por middleware
+ *
  * Body: { shopify_product_id: number }
  */
-export async function POST({ request }) {
+export async function POST({ request, locals }) {
   const startTime = Date.now();
 
   try {
-    const isAdmin = await isUserAdmin(request);
-    if (!isAdmin) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized: Admin access required' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!locals.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
     }
-
     const body = await request.json();
     const { shopify_product_id } = body;
 
@@ -68,10 +65,10 @@ export async function POST({ request }) {
 
     const now = new Date().toISOString();
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
       db: { schema: 'public' },
-      global: { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+      global: { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
     });
 
     // 3. Upsert producto

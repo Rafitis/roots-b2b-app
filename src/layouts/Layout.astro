@@ -1,9 +1,9 @@
 ---
 import "@styles/global.css";
+import { ClientRouter } from 'astro:transitions';
 import Footer from "@components/Footer.astro";
 import Header from '../components/Header.jsx';
 import GlobalToaster from '../components/GlobalToaster.jsx';
-import { isUserAdmin } from '../lib/auth.js';
 
 export interface Props {
   cartCount?: number;
@@ -12,10 +12,9 @@ export interface Props {
 }
 
 const { title, currentLocale } = Astro.props;
-const pathname = Astro.url.pathname;
 
-// Verificar si el usuario es admin en el servidor (evita flash en Header)
-const isAdmin = await isUserAdmin(Astro.request);
+// Usar datos del middleware (evita llamadas duplicadas a Supabase)
+const isAdmin = Astro.locals.isAdmin ?? false;
 ---
 <!DOCTYPE html>
 <html lang={currentLocale}>
@@ -24,13 +23,14 @@ const isAdmin = await isUserAdmin(Astro.request);
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon_roots.webp" />
 		<title>{title}</title>
+		<ClientRouter />
 		<!-- Inyectar estado inicial para evitar flash en componentes React -->
 		<script define:vars={{ isAdmin }}>
 			window.__ROOTS_INITIAL_STATE__ = { isAdmin };
 		</script>
   </head>
   <body class="min-h-screen flex flex-col">
-		<Header client:only />
+		<Header client:only transition:persist />
 
     <!-- Contenido principal con margen top para el header fijo -->
     <main class="flex-1 p-2 pt-24">
@@ -41,7 +41,18 @@ const isAdmin = await isUserAdmin(Astro.request);
     <Footer class="bg-gray-800 text-white py-4" />
 
     <!-- Toast notifications global -->
-    <GlobalToaster client:only="react" />
+    <GlobalToaster client:only="react" transition:persist />
+
+    <!-- Barra de progreso durante navegación -->
+    <div id="nav-progress" class="nav-progress-bar"></div>
+    <script>
+      document.addEventListener('astro:before-preparation', () => {
+        document.getElementById('nav-progress')?.classList.add('loading');
+      });
+      document.addEventListener('astro:after-swap', () => {
+        document.getElementById('nav-progress')?.classList.remove('loading');
+      });
+    </script>
   </body>
 </html>
 <style is:global>
@@ -74,5 +85,27 @@ const isAdmin = await isUserAdmin(Astro.request);
 		min-height: 100vh;
 		width: 100%;
 		margin: 0;
+	}
+	.nav-progress-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 0;
+		height: 3px;
+		background: var(--roots-moss);
+		z-index: 9999;
+		transition: none;
+		opacity: 0;
+	}
+	.nav-progress-bar.loading {
+		opacity: 1;
+		animation: nav-progress 2s ease-out forwards;
+	}
+	@keyframes nav-progress {
+		0%   { width: 0; }
+		20%  { width: 40%; }
+		50%  { width: 70%; }
+		80%  { width: 85%; }
+		100% { width: 95%; }
 	}
 </style>

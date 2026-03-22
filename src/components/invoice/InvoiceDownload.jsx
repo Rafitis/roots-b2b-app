@@ -12,6 +12,7 @@ import ErrorBoundary from '@components/errors/ErrorBoundary';
 import { useTranslations } from '@i18n/utils';
 import { useI18n } from '@hooks/useI18n';
 import { getCart, getCartTotals } from '@hooks/useCart';
+import { navigate } from 'astro:transitions/client';
 import toast from 'react-hot-toast'
 
 // Estilo mínimo para la página de fallback
@@ -250,7 +251,7 @@ const InvoiceDownload = ({
 
               // Redirigir al dashboard de admin después de guardar
               setTimeout(() => {
-                window.location.href = '/admin/invoices';
+                navigate('/admin/invoices');
               }, 2000);
             }
           } else {

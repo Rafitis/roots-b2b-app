@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 const CRON_SECRET = import.meta.env.CRON_SECRET;
 const SHOPIFY_API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
@@ -37,17 +37,17 @@ export async function POST({ request }) {
     // 2. Inicializar cliente Supabase con service key (bypass RLS)
     // La service key debe hacer bypass automático, pero necesitamos configurar
     // el esquema de autenticación correctamente
-    if (!SUPABASE_SERVICE_KEY) {
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY)'
+          error: 'Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_ROLE_KEY)'
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -57,7 +57,7 @@ export async function POST({ request }) {
       },
       global: {
         headers: {
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
         }
       }
     });
