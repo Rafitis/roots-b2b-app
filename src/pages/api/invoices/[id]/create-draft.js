@@ -20,7 +20,12 @@ function round2(value) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
 
-export const POST = async ({ params }) => {
+export const POST = async ({ params, locals }) => {
+  if (!locals?.isAdmin) {
+    return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+      status: 403, headers: { 'Content-Type': 'application/json' }
+    });
+  }
   const supabaseUrl = import.meta.env.SUPABASE_URL;
   const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 

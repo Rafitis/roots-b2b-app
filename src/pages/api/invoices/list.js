@@ -25,8 +25,13 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export const GET = async ({ request }) => {
+export const GET = async ({ request, locals }) => {
   try {
+    if (!locals?.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
+    }
     // Parsear query parameters
     const url = new URL(request.url);
     const params = Object.fromEntries(url.searchParams);
