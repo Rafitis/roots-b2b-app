@@ -41,6 +41,16 @@ import AuthLayout from "../layouts/AuthLogin.astro";
             <path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z" clip-rule="evenodd" />
           </svg>
           <input type="password" name="password" id="password" class="grow bg-transparent outline-none text-sm" placeholder="••••••••" />
+          <button type="button" id="toggle-password" class="p-0.5 text-roots-clay/50 hover:text-roots-bark transition-colors" aria-label="Mostrar contraseña">
+            <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+              <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+              <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41Z" clip-rule="evenodd" />
+            </svg>
+            <svg id="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 hidden">
+              <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 0 0-1.06 1.06l14.5 14.5a.75.75 0 1 0 1.06-1.06l-1.745-1.745a10.029 10.029 0 0 0 3.3-4.38 1.651 1.651 0 0 0 0-1.185A10.004 10.004 0 0 0 9.999 3a9.956 9.956 0 0 0-4.744 1.194L3.28 2.22ZM7.752 6.69l1.092 1.092a2.5 2.5 0 0 1 3.374 3.373l1.092 1.092a4 4 0 0 0-5.558-5.558Z" clip-rule="evenodd" />
+              <path d="m10.748 13.93 2.523 2.523A9.987 9.987 0 0 1 10 17a10.003 10.003 0 0 1-9.336-6.41 1.651 1.651 0 0 1 0-1.186 10.004 10.004 0 0 1 2.975-4.103l2.31 2.31A4 4 0 0 0 10.748 13.93Z" />
+            </svg>
+          </button>
         </label>
       </div>
 
@@ -49,4 +59,18 @@ import AuthLayout from "../layouts/AuthLogin.astro";
       </button>
     </form>
   </div>
+<script>
+  const toggle = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('password');
+  const iconEye = document.getElementById('icon-eye');
+  const iconEyeOff = document.getElementById('icon-eye-off');
+
+  toggle?.addEventListener('click', () => {
+    const isPassword = passwordInput?.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    iconEye?.classList.toggle('hidden', !isPassword);
+    iconEyeOff?.classList.toggle('hidden', isPassword);
+    toggle.setAttribute('aria-label', isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+</script>
 </AuthLayout>

@@ -27,8 +27,13 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export const POST = async ({ request, params }) => {
+export const POST = async ({ request, params, locals }) => {
   try {
+    if (!locals?.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const { id } = params;
 
     // 1. Validar UUID

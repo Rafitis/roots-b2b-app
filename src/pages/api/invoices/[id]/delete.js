@@ -1,11 +1,7 @@
 /**
- * PUT /api/invoices/[id]/cancel.js
+ * DELETE /api/invoices/[id]
  *
- * Marca una factura como 'cancelled'
- * Se usa cuando se edita una factura y se crea una nueva
- * La factura original se marca como cancelada
- *
- * No requiere parámetros en el body
+ * Elimina una factura y su PDF asociado
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -19,7 +15,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export const PUT = async ({ request, params, locals }) => {
+export const DELETE = async ({ params, locals }) => {
   try {
     if (!locals?.isAdmin) {
       return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
@@ -40,14 +36,25 @@ export const PUT = async ({ request, params, locals }) => {
       );
     }
 
-    // 2. Verificar que la factura existe
+    // 2. Obtener la factura para obtener el nombre del archivo PDF
     const { data: invoice, error: fetchError } = await supabase
       .from('invoices')
-      .select('id, status')
+      .select('id, invoice_number, pdf_storage_path')
       .eq('id', id)
       .single();
 
-    if (fetchError || !invoice) {
+    if (fetchError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Factura no encontrada',
+          details: fetchError.message
+        }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!invoice) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -57,50 +64,44 @@ export const PUT = async ({ request, params, locals }) => {
       );
     }
 
-    // 3. Validar que no esté ya cancelada
-    if (invoice.status === 'cancelled') {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'Factura ya está cancelada'
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+    // 3. Eliminar el PDF de Storage si existe
+    if (invoice.pdf_storage_path) {
+      try {
+        await supabase.storage
+          .from('roots-barefoot-invoices')
+          .remove([invoice.pdf_storage_path]);
+      } catch (storageError) {
+        // No interrumpir el flujo si falla el borrado del PDF
+      }
     }
 
-    // 4. Marcar como cancelled
-    const { error: updateError } = await supabase
+    // 4. Eliminar la factura de la BD
+    const { error: deleteError } = await supabase
       .from('invoices')
-      .update({
-        status: 'cancelled',
-        updated_at: new Date().toISOString()
-      })
+      .delete()
       .eq('id', id);
 
-    if (updateError) {
-      console.error('Error cancelling invoice:', updateError);
+    if (deleteError) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Error al cancelar factura',
-          details: updateError.message
+          error: 'Error al eliminar factura de la base de datos',
+          details: deleteError.message
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // 5. Retornar respuesta exitosa
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Factura ${id} marcada como cancelada`,
-        invoice_id: id
+        message: `Factura ${invoice.invoice_number} eliminada correctamente`
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Unexpected error in /api/invoices/[id]/cancel:', error);
+    console.error('Unexpected error in DELETE /api/invoices/[id]:', error);
     return new Response(
       JSON.stringify({
         success: false,

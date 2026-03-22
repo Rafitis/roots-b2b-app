@@ -37,6 +37,9 @@ export default function AdminInvoices() {
   // Estado de selección (para bulk download)
   const [selectedInvoices, setSelectedInvoices] = useState(new Set());
 
+  // Estado del modal de confirmación para eliminar
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, number }
+
   // Guard contra doble-mount de React StrictMode en dev
   const hasFetched = useRef(false);
 
@@ -92,9 +95,8 @@ export default function AdminInvoices() {
 
   // Cargar facturas cuando cambian los filtros (volver a página 1)
   useEffect(() => {
-    if (Object.values(filters).some(v => v)) {
-      loadInvoices(1);
-    }
+    if (!hasFetched.current) return; // Skip initial mount (handled above)
+    loadInvoices(1);
   }, [filters]);
 
   /**
@@ -285,15 +287,18 @@ export default function AdminInvoices() {
   /**
    * Eliminar una factura
    */
-  const handleDeleteInvoice = async (invoiceId, invoiceNumber) => {
-    // Confirmar eliminación
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar la factura ${invoiceNumber}? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+  const handleRequestDelete = (invoiceId, invoiceNumber) => {
+    setDeleteConfirm({ id: invoiceId, number: invoiceNumber });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const { id: invoiceId, number: invoiceNumber } = deleteConfirm;
+    setDeleteConfirm(null);
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/invoices/${invoiceId}`, {
+      const response = await fetch(`/api/invoices/${invoiceId}/delete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -412,7 +417,7 @@ export default function AdminInvoices() {
           onPageChange={handlePageChange}
           onDownload={handleDownloadInvoice}
           onEdit={handleEditInvoice}
-          onDelete={handleDeleteInvoice}
+          onDelete={handleRequestDelete}
           onUpdateShopifyNumber={handleUpdateShopifyNumber}
           onCreateDraft={handleCreateDraft}
           creatingDraftId={creatingDraftId}
@@ -438,6 +443,35 @@ export default function AdminInvoices() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Modal de confirmación para eliminar */}
+        {deleteConfirm && (
+          <dialog className="modal modal-open" aria-modal="true" role="alertdialog">
+            <div className="modal-box card-b2b max-w-sm">
+              <h3 className="text-lg font-semibold text-roots-bark">Eliminar factura</h3>
+              <p className="text-sm text-roots-earth mt-2">
+                ¿Estás seguro de que deseas eliminar la factura <span className="font-semibold">{deleteConfirm.number}</span>? Esta acción no se puede deshacer.
+              </p>
+              <div className="modal-action">
+                <button
+                  className="btn btn-sm"
+                  onClick={() => setDeleteConfirm(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="btn btn-sm btn-error"
+                  onClick={handleConfirmDelete}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button onClick={() => setDeleteConfirm(null)}>close</button>
+            </form>
+          </dialog>
         )}
     </div>
   );

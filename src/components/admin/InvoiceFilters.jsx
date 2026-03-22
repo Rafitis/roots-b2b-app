@@ -100,7 +100,7 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
             value={localFilters.status}
             onChange={(e) => handleInputChange('status', e.target.value)}
             disabled={disabled}
-            className={inputClasses}
+            className="select-b2b"
           >
             <option value="">Todos</option>
             <option value="pending_review">Pendiente</option>

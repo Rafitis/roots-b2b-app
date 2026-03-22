@@ -323,6 +323,7 @@ export default function AdminProducts() {
         {/* Tabla de productos */}
         <ProductTable
           products={filteredProducts}
+          loading={loading}
           onUpdateProduct={handleUpdateProduct}
           onResetProduct={handleResetProduct}
           onSyncProduct={handleSyncProduct}

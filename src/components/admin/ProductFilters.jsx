@@ -66,7 +66,7 @@ export default function ProductFilters({
           <select
             value={filters.tag}
             onChange={handleTagChange}
-            className={inputClasses + " cursor-pointer"}
+            className="select-b2b"
           >
             <option value="">Todos los tags</option>
             {availableTags.map(tag => (
@@ -82,7 +82,7 @@ export default function ProductFilters({
           <select
             value={filters.visibility}
             onChange={handleVisibilityChange}
-            className={inputClasses + " cursor-pointer"}
+            className="select-b2b"
           >
             <option value="all">Todos</option>
             <option value="visible">Solo visibles</option>

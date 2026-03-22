@@ -50,4 +50,12 @@
   .input-b2b {
     @apply input bg-base-100 border-base-300 focus:border-roots-clay focus:outline-none transition-colors;
   }
+
+  /* Select/combo override — matches input-b2b */
+  .select-b2b {
+    @apply select select-bordered w-full bg-base-100 border-base-300 text-roots-bark text-sm
+           focus:border-roots-clay focus:outline-none
+           disabled:bg-base-200 disabled:cursor-not-allowed
+           transition-colors cursor-pointer;
+  }
 }

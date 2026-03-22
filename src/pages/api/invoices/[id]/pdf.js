@@ -19,8 +19,13 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const BUCKET_NAME = 'roots-barefoot-invoices';
 
-export const GET = async ({ params }) => {
+export const GET = async ({ params, locals }) => {
   try {
+    if (!locals?.isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const { id } = params;
 
     // Validar que el ID es un UUID válido
