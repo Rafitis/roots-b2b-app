@@ -20,6 +20,18 @@ const fallbackStyles = StyleSheet.create({
   page: { padding: 30, fontSize: 12, textAlign: 'center' }
 });
 
+/**
+ * Convierte un Blob a base64 usando FileReader envuelto en una Promise.
+ */
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Error reading PDF blob'));
+    reader.readAsDataURL(blob);
+  });
+};
+
 const CombinedInvoice = React.memo( ({
   regularItems = [],
   preOrderItems = [],
@@ -115,7 +127,8 @@ const InvoiceDownload = ({
     .map(([key]) => key);
 
   /**
-   * Genera el PDF en base64 y lo envía al servidor para guardarlo
+   * Guarda la factura en el servidor. Retorna { success, invoice_number } para
+   * que el caller decida si proceder con la descarga del PDF.
    *
    * 🛡️ PROTECCIÓN CONTRA RACE CONDITION:
    * Lee items y totales DIRECTAMENTE del store en el momento de guardar
@@ -144,137 +157,122 @@ const InvoiceDownload = ({
           diff: totalsDiff
         });
         toast.error('Error: Datos desactualizados. Por favor recarga la página.');
-        setIsSaving(false);
-        return;
+        return { success: false };
       }
 
-      // Convertir blob a base64
-      const reader = new FileReader();
-      reader.readAsDataURL(pdfBlob);
+      // Convertir blob a base64 (ahora awaitable)
+      const pdfBase64 = await blobToBase64(pdfBlob);
 
-      reader.onload = async () => {
-        const pdfBase64 = reader.result;
+      // Preparar datos de items desde currentItems (store actual)
+      const itemsData = currentItems.map(item => {
+        const single_price = Number(item.price);
+        const discountFactor = 1 - Number(item.discount) / 100;
+        const total = (item.quantity * single_price * discountFactor).toFixed(2);
 
-        // Preparar datos de items desde currentItems (store actual)
-        const itemsData = currentItems.map(item => {
-          const single_price = Number(item.price);
-          const discountFactor = 1 - Number(item.discount) / 100;
-          const total = (item.quantity * single_price * discountFactor).toFixed(2);
-
-          return {
-            id: item.id,
-            product_id: item.product_id,
-            tag: item.tag,
-            name: item.name,
-            color: item.color,
-            size: item.size,
-            quantity: item.quantity,
-            price: single_price,
-            discount: item.discount,
-            total: parseFloat(total),
-            product_img: item.product_img,
-            sku: item.sku,
-            isPreOrder: item.isPreOrder || false
-          };
-        });
-
-        // Separar preorders desde currentItems
-        const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
-
-        // Preparar datos de factura usando currentTotals (store actual)
-        const discount = customDiscount || 0;
-        const invoiceData = {
-          company_name: customerInfo.fiscal_name,
-          nif_cif: customerInfo.nif_cif,
-          address: customerInfo.address,
-          country: customerInfo.country || 'ES',
-          items_count: currentItems.length,
-          items_data: itemsData,
-          total_amount_eur: Math.max(0, Math.round(((currentTotals.total_factura || 0) - discount) * 100) / 100),
-          vat_amount: currentTotals.iva || 0,
-          surcharge_applied: !!customerInfo.isRecharge,
-          surcharge_amount: currentTotals.recargo || 0,
-          shipping_amount: currentTotals.shipping || 0,
-          is_preorder: currentPreOrderItems.length > 0,
-          custom_discount_eur: discount,
-          // Si estamos editando, pasar el ID de la factura original
-          previous_invoice_id: isEditingMode ? editingInvoiceId : null,
-          // Incluir número de Shopify si existe
-          shopify_order_number: customerInfo.shopify_order_number || null,
-          // Email del cliente para buscar en Shopify al crear Draft Order
-          customer_email: customerInfo.email || null
+        return {
+          id: item.id,
+          product_id: item.product_id,
+          tag: item.tag,
+          name: item.name,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity,
+          price: single_price,
+          discount: item.discount,
+          total: parseFloat(total),
+          product_img: item.product_img,
+          sku: item.sku,
+          isPreOrder: item.isPreOrder || false
         };
+      });
 
-        // Enviar al servidor
-        try {
-          const response = await fetch('/api/invoices/save', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              invoice_data: invoiceData,
-              pdf_base64: pdfBase64
-            })
-          });
+      // Separar preorders desde currentItems
+      const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
 
-          const result = await response.json();
+      // Preparar datos de factura usando currentTotals (store actual)
+      const discount = customDiscount || 0;
+      const invoiceData = {
+        company_name: customerInfo.fiscal_name,
+        nif_cif: customerInfo.nif_cif,
+        address: customerInfo.address,
+        country: customerInfo.country || 'ES',
+        items_count: currentItems.length,
+        items_data: itemsData,
+        total_amount_eur: Math.max(0, Math.round(((currentTotals.total_factura || 0) - discount) * 100) / 100),
+        vat_amount: currentTotals.iva || 0,
+        surcharge_applied: !!customerInfo.isRecharge,
+        surcharge_amount: currentTotals.recargo || 0,
+        shipping_amount: currentTotals.shipping || 0,
+        is_preorder: currentPreOrderItems.length > 0,
+        custom_discount_eur: discount,
+        // Si estamos editando, pasar el ID de la factura original
+        previous_invoice_id: isEditingMode ? editingInvoiceId : null,
+        // Incluir número de Shopify si existe
+        shopify_order_number: customerInfo.shopify_order_number || null,
+        // Email del cliente para buscar en Shopify al crear Draft Order
+        customer_email: customerInfo.email || null
+      };
 
-          if (response.ok && result.success) {
-            // Si estamos en modo edición, marcar la factura original como 'cancelled'
-            if (isEditingMode && editingInvoiceId) {
-              try {
-                await fetch(`/api/invoices/${editingInvoiceId}/cancel`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-              } catch (error) {
-                console.error('Error cancelling original invoice:', error);
-                // No interrumpir el flujo aunque falle cancelar
-              }
-            }
+      // Enviar al servidor
+      const response = await fetch('/api/invoices/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          invoice_data: invoiceData,
+          pdf_base64: pdfBase64
+        })
+      });
 
-            const successMessage = isEditingMode
-              ? `${t('download.success')} ${result.invoice_number} (Original marcada como cancelada)`
-              : `${t('download.success')} ${result.invoice_number}`;
+      const result = await response.json();
 
-            toast.success(successMessage);
-
-            // Limpiar localStorage de edición si estábamos editando
-            if (isEditingMode) {
-              localStorage.removeItem('editingInvoice');
-              localStorage.removeItem('editingInvoiceLoaded');
-              localStorage.removeItem('editingCustomerInfo');
-              localStorage.removeItem('editingInvoiceNumber');
-              localStorage.removeItem('editingInvoiceId');
-              localStorage.removeItem('editingCustomDiscount');
-
-              // Redirigir al dashboard de admin después de guardar
-              setTimeout(() => {
-                navigate('/admin/invoices');
-              }, 2000);
-            }
-          } else {
-            // El PDF se descargó pero no se guardó en servidor
-            toast.error(result.error || 'Error al guardar en servidor');
-            console.error('Error saving invoice:', result);
+      if (response.ok && result.success) {
+        // Si estamos en modo edición, marcar la factura original como 'cancelled'
+        if (isEditingMode && editingInvoiceId) {
+          try {
+            await fetch(`/api/invoices/${editingInvoiceId}/cancel`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' }
+            });
+          } catch (error) {
+            console.error('Error cancelling original invoice:', error);
+            // No interrumpir el flujo aunque falle cancelar
           }
-        } catch (error) {
-          console.error('Error calling save endpoint:', error);
-          toast.error('Error al guardar factura en servidor');
-        } finally {
-          setIsSaving(false);
         }
-      };
 
-      reader.onerror = () => {
-        console.error('Error reading PDF blob');
-        toast.error('Error al procesar PDF');
-        setIsSaving(false);
-      };
+        const successMessage = isEditingMode
+          ? `${t('download.success')} ${result.invoice_number} (Original marcada como cancelada)`
+          : `${t('download.success')} ${result.invoice_number}`;
+
+        toast.success(successMessage);
+
+        // Limpiar localStorage de edición si estábamos editando
+        if (isEditingMode) {
+          localStorage.removeItem('editingInvoice');
+          localStorage.removeItem('editingInvoiceLoaded');
+          localStorage.removeItem('editingCustomerInfo');
+          localStorage.removeItem('editingInvoiceNumber');
+          localStorage.removeItem('editingInvoiceId');
+          localStorage.removeItem('editingCustomDiscount');
+
+          // Redirigir al dashboard de admin después de guardar
+          setTimeout(() => {
+            navigate('/admin/invoices');
+          }, 2000);
+        }
+
+        return { success: true, invoice_number: result.invoice_number };
+      } else {
+        toast.error(result.error || 'Error al guardar en servidor');
+        console.error('Error saving invoice:', result);
+        return { success: false };
+      }
     } catch (error) {
       console.error('Error in saveInvoiceToServer:', error);
-      toast.error('Error inesperado');
+      toast.error('Error al guardar factura en servidor');
+      return { success: false };
+    } finally {
       setIsSaving(false);
     }
   };
@@ -295,7 +293,7 @@ const InvoiceDownload = ({
       return;
     }
 
-    // Generar PDF y guardarlo en servidor
+    // Generar PDF, guardarlo en servidor, y solo descargar si se guardó correctamente
     if (!isSaving) {
       try {
         const currentItems = getCart();
@@ -315,15 +313,20 @@ const InvoiceDownload = ({
         );
 
         const pdfBlob = await pdf(pdfDocument).toBlob();
-        const downloadUrl = URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = `${t('download.documentTitle')}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-        await saveInvoiceToServer(pdfBlob);
+
+        // Primero guardar en servidor — solo descargar si fue exitoso
+        const saveResult = await saveInvoiceToServer(pdfBlob);
+
+        if (saveResult.success) {
+          const downloadUrl = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = `${t('download.documentTitle')}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+        }
       } catch (error) {
         console.error('Error generating PDF:', error);
         toast.error('Error al generar PDF');
