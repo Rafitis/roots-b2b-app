@@ -97,7 +97,11 @@ export async function getNestedCatalog() {
           color: variant.color,
           precio: precioSinIVA, // Precio del producto aplicado a todas las variantes
           stock_actual: variant.stock_actual || 0
-        }))
+        })).sort((a, b) => {
+          const tallaA = parseFloat(a.talla) || 0;
+          const tallaB = parseFloat(b.talla) || 0;
+          return tallaA - tallaB;
+        })
       };
     });
 
