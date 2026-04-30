@@ -1,89 +1,11 @@
 /**
  * shopify-draft.js
  *
- * Servicio para interactuar con la API de Shopify (Dev Dashboard app):
- * - Autenticación via client credentials grant (token expira cada 24h)
- * - Buscar clientes por email
- * - Crear Draft Orders con descuento global
- * - Consultar Draft Orders existentes
- *
- * Variables de entorno necesarias:
- *   SHOPIFY_CLIENT_ID     - Client ID de la app en el Dev Dashboard
- *   SHOPIFY_CLIENT_SECRET - Client Secret de la app en el Dev Dashboard
- *   SHOPIFY_URL           - Dominio de la tienda (ej: 50fc84.myshopify.com)
+ * Operaciones sobre clientes y Draft Orders de Shopify.
+ * La autenticación y el fetch genérico viven en `shopify-client.js`.
  */
 
-const SHOPIFY_SHOP = import.meta.env.SHOPIFY_URL;
-const SHOPIFY_CLIENT_ID = import.meta.env.SHOPIFY_CLIENT_ID;
-const SHOPIFY_CLIENT_SECRET = import.meta.env.SHOPIFY_CLIENT_SECRET;
-const API_VERSION = '2025-04';
-
-// Caché del token en memoria (válido durante la vida del proceso SSR)
-let _cachedToken = null;
-let _tokenExpiresAt = 0;
-
-/**
- * Obtiene un access token válido via client credentials grant.
- * Reutiliza el token cacheado si no ha expirado (con margen de 60s).
- * @returns {Promise<string>} Access token
- */
-async function getToken() {
-  if (_cachedToken && Date.now() < _tokenExpiresAt - 60_000) {
-    return _cachedToken;
-  }
-
-  const response = await fetch(
-    `https://${SHOPIFY_SHOP}/admin/oauth/access_token`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: SHOPIFY_CLIENT_ID,
-        client_secret: SHOPIFY_CLIENT_SECRET,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Shopify token request failed ${response.status}: ${errorBody}`);
-  }
-
-  const { access_token, expires_in } = await response.json();
-  _cachedToken = access_token;
-  _tokenExpiresAt = Date.now() + expires_in * 1000;
-
-  return _cachedToken;
-}
-
-/**
- * Hace una petición autenticada a la API REST de Shopify.
- * Obtiene el token automáticamente (con renovación si ha expirado).
- * @param {string} path - Ruta relativa (ej: '/customers/search.json')
- * @param {Object} options - Opciones de fetch
- * @returns {Promise<Object>} Respuesta JSON de Shopify
- */
-async function shopifyFetch(path, options = {}) {
-  const token = await getToken();
-  const url = `https://${SHOPIFY_SHOP}/admin/api/${API_VERSION}${path}`;
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'X-Shopify-Access-Token': token,
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Shopify API error ${response.status}: ${errorBody}`);
-  }
-
-  return response.json();
-}
+import { shopifyFetch } from './shopify-client.js';
 
 /**
  * Busca un cliente en Shopify por email.
