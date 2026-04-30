@@ -1,10 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { shopifyFetch } from '../../../lib/shopify-client.js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-const SHOPIFY_API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
-const API_VERSION = "2025-04";
 
 /**
  * POST /api/admin/sync-product
@@ -33,25 +32,19 @@ export async function POST({ request, locals }) {
     }
 
     // 1. Obtener producto de Shopify
-    const shopifyUrl = `https://${SHOPIFY_URL}/admin/api/${API_VERSION}/products/${shopify_product_id}.json`;
-    const shopifyResponse = await fetch(shopifyUrl, {
-      headers: {
-        'X-Shopify-Access-Token': SHOPIFY_API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!shopifyResponse.ok) {
+    let product;
+    try {
+      const data = await shopifyFetch(`/products/${shopify_product_id}.json`);
+      product = data.product;
+    } catch (err) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: `Shopify API error: ${shopifyResponse.status}` 
+        JSON.stringify({
+          success: false,
+          error: err.message
         }),
         { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
     }
-
-    const { product } = await shopifyResponse.json();
 
     // 2. Preparar datos del producto
     let tagsArray = [];

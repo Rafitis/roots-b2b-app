@@ -1,11 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { shopifyFetchRaw, SHOPIFY_API_VERSION } from '../../../lib/shopify-client.js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 const CRON_SECRET = import.meta.env.CRON_SECRET;
-const SHOPIFY_API_KEY = import.meta.env.SHOPIFY_API_KEY;
 const SHOPIFY_URL = import.meta.env.SHOPIFY_URL;
-const API_VERSION = "2025-04";
 
 /**
  * Endpoint de sincronización periódica Shopify → Supabase
@@ -189,15 +188,10 @@ export async function POST({ request }) {
  */
 async function getAllProductsFromShopify() {
   let todosLosProductos = [];
-  let url = `https://${SHOPIFY_URL}/admin/api/${API_VERSION}/products.json?limit=250&status=active`;
+  let url = `https://${SHOPIFY_URL}/admin/api/${SHOPIFY_API_VERSION}/products.json?limit=250&status=active`;
 
   while (url) {
-    const response = await fetch(url, {
-      headers: {
-        'X-Shopify-Access-Token': SHOPIFY_API_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await shopifyFetchRaw(url);
 
     if (!response.ok) {
       throw new Error(`Error en Shopify API: ${response.status} ${response.statusText}`);
