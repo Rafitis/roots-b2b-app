@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { shopifyFetch } from '../../../lib/shopify-client.js';
+import { buildVariantImageMap, resolveVariantImage } from '../../../lib/shopify-mappers.js';
 
 const SUPABASE_URL = import.meta.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -87,6 +88,7 @@ export async function POST({ request, locals }) {
     }
 
     // 4. Preparar y upsert variantes
+    const imageMap = buildVariantImageMap(product);
     const variantRows = product.variants.map(variant => {
       let talla = variant.option2;
       let color = variant.option1;
@@ -103,6 +105,7 @@ export async function POST({ request, locals }) {
         color: color || null,
         precio: variant.price ? (parseFloat(variant.price) / 1.21).toFixed(2) : null,
         stock_actual: variant.inventory_quantity || 0,
+        image_url: resolveVariantImage(variant, imageMap),
         last_synced_at: now
       };
     });

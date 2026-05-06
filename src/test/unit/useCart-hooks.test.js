@@ -44,6 +44,53 @@ describe('useCart Hooks - Solución al bug de race condition', () => {
     removeAllFromCart();
   });
 
+  describe('addToCart - imagen de variante', () => {
+    it('usa variant.imagen cuando está definida', () => {
+      act(() => {
+        addToCart({
+          tag: 'CALCETINES',
+          product: mockProduct,
+          quantity: 1,
+          variant: { ...mockVariant, imagen: 'https://cdn.shopify.com/sock-red.jpg' },
+          isPreOrder: false
+        });
+      });
+
+      const items = itemsStore.get();
+      expect(items[0].product_img).toBe('https://cdn.shopify.com/sock-red.jpg');
+    });
+
+    it('cae a product.imagen cuando variant.imagen es null', () => {
+      act(() => {
+        addToCart({
+          tag: 'CALCETINES',
+          product: mockProduct,
+          quantity: 1,
+          variant: { ...mockVariant, imagen: null },
+          isPreOrder: false
+        });
+      });
+
+      const items = itemsStore.get();
+      expect(items[0].product_img).toBe(mockProduct.imagen);
+    });
+
+    it('cae a product.imagen cuando variant.imagen no está definida', () => {
+      act(() => {
+        addToCart({
+          tag: 'CALCETINES',
+          product: mockProduct,
+          quantity: 1,
+          variant: mockVariant, // sin campo imagen
+          isPreOrder: false
+        });
+      });
+
+      const items = itemsStore.get();
+      expect(items[0].product_img).toBe(mockProduct.imagen);
+    });
+  });
+
   describe('useCartItems', () => {
     it('retorna array vacío cuando no hay items', () => {
       const { result } = renderHook(() => useCartItems());

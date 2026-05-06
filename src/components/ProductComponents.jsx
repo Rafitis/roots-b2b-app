@@ -4,6 +4,53 @@ import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
 
+function VariantImage({ src, alt }) {
+  const [slots, setSlots] = useState({ a: src, b: null, active: 'a' });
+
+  useEffect(() => {
+    if (!src) return;
+    setSlots(prev => {
+      if (prev[prev.active] === src) return prev;
+      const inactive = prev.active === 'a' ? 'b' : 'a';
+      return { ...prev, [inactive]: src, active: inactive };
+    });
+  }, [src]);
+
+  const renderLayer = (layerSrc, isActive) => {
+    if (!layerSrc) return null;
+    const sep = layerSrc.includes('?') ? '&' : '?';
+    return (
+      <img
+        src={`${layerSrc}${sep}width=400`}
+        srcSet={[
+          `${layerSrc}${sep}width=300 300w`,
+          `${layerSrc}${sep}width=400 400w`,
+          `${layerSrc}${sep}width=600 600w`,
+        ].join(', ')}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        alt={alt}
+        className={[
+          'absolute inset-0 w-full h-full object-cover',
+          'transition-opacity duration-500 ease-out',
+          isActive ? 'opacity-100' : 'opacity-0',
+        ].join(' ')}
+        loading="lazy"
+        width={400}
+        height={400}
+      />
+    );
+  };
+
+  return (
+    <div className="aspect-square bg-base-200/50 overflow-hidden relative group">
+      <div className="absolute inset-0 transition-transform duration-300 ease-out group-hover:scale-105">
+        {renderLayer(slots.a, slots.active === 'a')}
+        {renderLayer(slots.b, slots.active === 'b')}
+      </div>
+    </div>
+  );
+}
+
 export function VariationOption({ variant, isSelected, onSelect, isPreOrder, isReservaB2B }) {
   const isOutOfStock = !isPreOrder && !isReservaB2B && variant.stock_actual <= 0;
   const label = [variant.talla, variant.color].filter(Boolean).join(' / ');
@@ -122,23 +169,11 @@ export function ProductCard({ product }) {
           </div>
         )}
 
-        {product.imagen && (
-          <div className="aspect-square bg-base-200/50 overflow-hidden">
-            <img
-              src={`${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=400`}
-              srcSet={[
-                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=300 300w`,
-                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=400 400w`,
-                `${product.imagen}${product.imagen.includes('?') ? '&' : '?'}width=600 600w`,
-              ].join(', ')}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              alt={product.nombre}
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-              loading="lazy"
-              width={400}
-              height={400}
-            />
-          </div>
+        {(selectedVariant?.imagen || product.imagen) && (
+          <VariantImage
+            src={selectedVariant?.imagen || product.imagen}
+            alt={product.nombre}
+          />
         )}
       </div>
 
