@@ -48,7 +48,8 @@ export async function getNestedCatalog() {
           talla,
           color,
           precio,
-          stock_actual
+          stock_actual,
+          image_url
         )
       `)
       .eq('is_visible', true)
@@ -96,7 +97,8 @@ export async function getNestedCatalog() {
           talla: variant.talla,
           color: variant.color,
           precio: precioSinIVA, // Precio del producto aplicado a todas las variantes
-          stock_actual: variant.stock_actual || 0
+          stock_actual: variant.stock_actual || 0,
+          imagen: variant.image_url || null
         })).sort((a, b) => {
           const tallaA = parseFloat(a.talla) || 0;
           const tallaB = parseFloat(b.talla) || 0;

@@ -57,7 +57,8 @@ const MOCK_SUPABASE_PRODUCTS = [
         talla: '38',
         color: 'Negro',
         precio: '120.00',
-        stock_actual: 5
+        stock_actual: 5,
+        image_url: 'https://cdn.shopify.com/model-a-negro.jpg'
       },
       {
         shopify_variant_id: 90012,
@@ -65,7 +66,8 @@ const MOCK_SUPABASE_PRODUCTS = [
         talla: '40',
         color: 'Negro',
         precio: '120.00',
-        stock_actual: 0
+        stock_actual: 0,
+        image_url: null
       }
     ]
   },
@@ -86,7 +88,8 @@ const MOCK_SUPABASE_PRODUCTS = [
         talla: '35-39',
         color: 'Blanco',
         precio: '15.00',
-        stock_actual: 100
+        stock_actual: 100,
+        image_url: null
       }
     ]
   }
@@ -168,7 +171,8 @@ describe('Shape de datos del catálogo (compatibilidad)', () => {
             talla: variant.talla,
             color: variant.color,
             precio: precioSinIVA,
-            stock_actual: variant.stock_actual || 0
+            stock_actual: variant.stock_actual || 0,
+            imagen: variant.image_url || null
           }))
         };
       });
@@ -253,6 +257,18 @@ describe('Shape de datos del catálogo (compatibilidad)', () => {
     const precios = p1.variants.map(v => v.precio);
     expect(new Set(precios).size).toBe(1);
     expect(precios[0]).toBe('82.64');
+  });
+
+  it('debe exponer variant.imagen cuando image_url existe', () => {
+    const catalog = transformProductsToShape(MOCK_SUPABASE_PRODUCTS);
+    const variantConImagen = catalog[0].variants[0];
+    expect(variantConImagen.imagen).toBe('https://cdn.shopify.com/model-a-negro.jpg');
+  });
+
+  it('variant.imagen debe ser null cuando image_url es null', () => {
+    const catalog = transformProductsToShape(MOCK_SUPABASE_PRODUCTS);
+    const variantSinImagen = catalog[0].variants[1];
+    expect(variantSinImagen.imagen).toBeNull();
   });
 
   it('stock_actual debe ser 0 cuando es null/undefined', () => {

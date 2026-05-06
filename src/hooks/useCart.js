@@ -100,7 +100,7 @@ export function addToCart({ tag, product, quantity, variant, isPreOrder }) {
   const discount = calculateDiscount(tag, quantity);
   const newItem = {
     id: key,
-    product_img: product.imagen,
+    product_img: variant?.imagen || product.imagen,
     product_id: product.ID_producto,
     name: product.nombre,
     quantity: quantity,
