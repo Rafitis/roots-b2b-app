@@ -10,6 +10,7 @@
  * - nif: NIF/CIF a buscar
  * - company: Nombre de empresa a buscar
  * - status: Estado (pending_review, shopify_draft, completed, cancelled)
+ * - is_paid: Filtrar por estado de pago ('true' | 'false')
  * - page: Número de página (default: 1)
  * - per_page: Resultados por página (default: 50, max: 100)
  */
@@ -42,6 +43,8 @@ export const GET = async ({ request, locals }) => {
     const nif = params.nif?.trim() || null;
     const company = params.company?.trim() || null;
     const status = params.status?.trim() || null;
+    const isPaidParam = params.is_paid?.trim();
+    const isPaid = isPaidParam === 'true' ? true : isPaidParam === 'false' ? false : null;
     const page = Math.max(1, parseInt(params.page) || 1);
     const perPage = Math.min(100, Math.max(10, parseInt(params.per_page) || 50));
 
@@ -94,6 +97,10 @@ export const GET = async ({ request, locals }) => {
       query = query.eq('status', status);
     }
 
+    if (isPaid !== null) {
+      query = query.eq('is_paid', isPaid);
+    }
+
     // Ordenar por fecha descendente (más recientes primero)
     query = query.order('created_at', { ascending: false });
 
@@ -132,7 +139,8 @@ export const GET = async ({ request, locals }) => {
           date_to: params.date_to || null,
           nif: nif,
           company: company,
-          status: status || null
+          status: status || null,
+          is_paid: isPaid
         }
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }

@@ -18,7 +18,8 @@ export default function InvoiceTable({
   onDelete,
   onUpdateShopifyNumber,
   onCreateDraft,
-  creatingDraftId
+  creatingDraftId,
+  onTogglePaid
 }) {
   
   const [editingShopifyNumbers, setEditingShopifyNumbers] = useState({});
@@ -85,6 +86,7 @@ export default function InvoiceTable({
                 <th className="px-4 py-3"><div className="skeleton h-3 w-14 rounded bg-base-200" /></th>
                 <th className="px-4 py-3"><div className="skeleton h-3 w-20 rounded bg-base-200" /></th>
                 <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
+                <th className="px-4 py-3"><div className="skeleton h-3 w-14 rounded bg-base-200" /></th>
                 <th className="px-4 py-3"><div className="skeleton h-3 w-16 rounded bg-base-200" /></th>
               </tr>
             </thead>
@@ -100,6 +102,7 @@ export default function InvoiceTable({
                   <td className="px-4 py-3"><div className="skeleton h-4 w-16 rounded bg-base-200 ml-auto" /></td>
                   <td className="px-4 py-3"><div className="skeleton h-4 w-24 rounded bg-base-200 mx-auto" /></td>
                   <td className="px-4 py-3"><div className="skeleton h-5 w-20 rounded bg-base-200 mx-auto" /></td>
+                  <td className="px-4 py-3"><div className="skeleton h-4 w-4 rounded bg-base-200 mx-auto" /></td>
                   <td className="px-4 py-3"><div className="skeleton h-4 w-24 rounded bg-base-200 mx-auto" /></td>
                 </tr>
               ))}
@@ -141,6 +144,7 @@ export default function InvoiceTable({
               <th className="px-4 py-3 text-right">Total</th>
               <th className="px-4 py-3 text-center">Pedido Shopify</th>
               <th className="px-4 py-3 text-center">Estado</th>
+              <th className="px-4 py-3 text-center">Pagada</th>
               <th className="px-4 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -163,7 +167,7 @@ export default function InvoiceTable({
                   />
                 </td>
 
-                <td className="px-4 py-3 font-semibold text-roots-bark">
+                <td className="px-4 py-3 font-semibold text-roots-bark whitespace-nowrap">
                   {invoice.invoice_number}
                 </td>
 
@@ -209,6 +213,18 @@ export default function InvoiceTable({
                       </span>
                     );
                   })()}
+                </td>
+
+                <td className="px-4 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={!!invoice.is_paid}
+                    onChange={() => onTogglePaid(invoice.id, !invoice.is_paid)}
+                    disabled={loading}
+                    className="checkbox checkbox-sm border-2 border-roots-earth/60 hover:border-roots-bark checked:border-success"
+                    aria-label={invoice.is_paid ? 'Marcar como pendiente' : 'Marcar como pagada'}
+                    title={invoice.is_paid ? 'Pagada' : 'Pendiente de pago'}
+                  />
                 </td>
 
                 <td className="px-4 py-3">
