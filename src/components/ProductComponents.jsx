@@ -258,7 +258,7 @@ export function ProductsByTag({ catalog }) {
   }, [catalog]);
 
   return (
-    <div className="max-w-7xl mx-auto w-full space-y-16">
+    <div className="max-w-[1600px] mx-auto w-full space-y-16">
       {grouped.orderedTags.map(tag => (
         <section key={tag}>
           <div className="flex items-center gap-4 mb-6">

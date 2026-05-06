@@ -196,7 +196,7 @@ const CartPage = ({ DNI, IBAN}) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-20 lg:pb-0">
+    <div className="max-w-[1600px] mx-auto pb-20 lg:pb-0">
       {/* Banner de modo edición */}
       {isEditingMode && (
         <div className="flex items-center justify-between gap-4 p-4 mb-6 bg-info/5 border border-info/20 rounded-lg">
@@ -287,7 +287,7 @@ const CartPage = ({ DNI, IBAN}) => {
       {/* Bottom bar mobile — visible solo cuando el sidebar no está en pantalla */}
       {cartItems.length > 0 && !sidebarVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-base-100 border-t border-base-300 shadow-overlay px-4 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center justify-between max-w-[1600px] mx-auto">
             <div>
               <p className="text-xs text-roots-earth">{t('invoice.total.total')}</p>
               <p className="text-lg font-bold text-roots-bark tabular-nums">

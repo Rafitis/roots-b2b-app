@@ -31,7 +31,8 @@ export default function AdminInvoices() {
     date_to: '',
     nif: '',
     company: '',
-    status: ''
+    status: '',
+    is_paid: ''
   });
 
   // Estado de selección (para bulk download)
@@ -64,6 +65,9 @@ export default function AdminInvoices() {
       if (activeFilters.nif) queryParams.append('nif', activeFilters.nif);
       if (activeFilters.company) queryParams.append('company', activeFilters.company);
       if (activeFilters.status) queryParams.append('status', activeFilters.status);
+      if (activeFilters.is_paid !== '' && activeFilters.is_paid !== undefined) {
+        queryParams.append('is_paid', activeFilters.is_paid);
+      }
 
       // Llamar endpoint
       const response = await fetch(`/api/invoices/list?${queryParams}`);
@@ -115,7 +119,8 @@ export default function AdminInvoices() {
       date_to: '',
       nif: '',
       company: '',
-      status: ''
+      status: '',
+      is_paid: ''
     };
     setFilters(clearedFilters);
     // Recargar todas las facturas sin filtros pasándolos como parámetro
@@ -359,6 +364,42 @@ export default function AdminInvoices() {
   };
 
   /**
+   * Marcar/desmarcar factura como pagada (toggle).
+   * Update optimista + rollback en error.
+   */
+  const handleTogglePaid = async (invoiceId, newValue) => {
+    setInvoices(prev => prev.map(inv =>
+      inv.id === invoiceId ? { ...inv, is_paid: newValue } : inv
+    ));
+
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/toggle-paid`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_paid: newValue })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setInvoices(prev => prev.map(inv =>
+          inv.id === invoiceId ? { ...inv, is_paid: !newValue } : inv
+        ));
+        toast.error(data.error || 'Error al actualizar estado de pago');
+        return;
+      }
+
+      toast.success(newValue ? 'Factura marcada como pagada' : 'Factura marcada como pendiente');
+    } catch (error) {
+      console.error('Error toggling paid status:', error);
+      setInvoices(prev => prev.map(inv =>
+        inv.id === invoiceId ? { ...inv, is_paid: !newValue } : inv
+      ));
+      toast.error('Error al actualizar estado de pago');
+    }
+  };
+
+  /**
    * Actualizar número de Shopify
    * Soporta actualizar o eliminar (con string vacío)
    */
@@ -421,6 +462,7 @@ export default function AdminInvoices() {
           onUpdateShopifyNumber={handleUpdateShopifyNumber}
           onCreateDraft={handleCreateDraft}
           creatingDraftId={creatingDraftId}
+          onTogglePaid={handleTogglePaid}
         />
 
         {/* Acciones de bulk */}

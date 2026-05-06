@@ -64,7 +64,7 @@ export default function Header() {
           : 'h-20 bg-base-100',
       ].join(' ')}
     >
-      <div className="h-full max-w-7xl mx-auto flex items-center justify-between">
+      <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
         {/* Brand */}
         <a href={productsUrl} className="flex items-center gap-3 group">
           <div className="flex flex-col">

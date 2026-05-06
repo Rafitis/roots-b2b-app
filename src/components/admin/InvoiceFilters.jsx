@@ -25,7 +25,8 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
       date_to: '',
       nif: '',
       company: '',
-      status: ''
+      status: '',
+      is_paid: ''
     };
     setLocalFilters(clearedFilters);
     onClear();
@@ -109,6 +110,20 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
             <option value="cancelled">Cancelada</option>
           </select>
         </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-roots-earth">Pago</label>
+          <select
+            value={localFilters.is_paid ?? ''}
+            onChange={(e) => handleInputChange('is_paid', e.target.value)}
+            disabled={disabled}
+            className="select-b2b"
+          >
+            <option value="">Todas</option>
+            <option value="true">Pagadas</option>
+            <option value="false">Pendientes</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 mt-5">
@@ -139,7 +154,9 @@ export default function InvoiceFilters({ filters, onApply, onClear, disabled }) 
               localFilters.date_to && `hasta ${localFilters.date_to}`,
               localFilters.nif && `NIF: ${localFilters.nif}`,
               localFilters.company && `Empresa: ${localFilters.company}`,
-              localFilters.status && `Estado: ${localFilters.status}`
+              localFilters.status && `Estado: ${localFilters.status}`,
+              localFilters.is_paid === 'true' && 'Pago: Pagadas',
+              localFilters.is_paid === 'false' && 'Pago: Pendientes'
             ].filter(Boolean).join(' | ')}
           </p>
         </div>
