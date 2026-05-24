@@ -69,6 +69,9 @@ export const ui = {
         'product.quantity': 'Cantidad',
         'product.preOrder': 'Preventa',
         'product.pricePerUnit': 'Precio por Unidad',
+        'product.tiers.title': 'Precios por cantidad',
+        'product.tiers.unit': 'ud',
+        'product.tiers.units': 'uds',
 
         'cart.infoTitle': 'Información del Cliente',
         'cart.orderSummary': 'Resumen del Pedido',
@@ -145,6 +148,9 @@ export const ui = {
         'product.quantity': 'Quantity',
         'product.preOrder': 'Pre Order',
         'product.pricePerUnit': 'Price per Unit',
+        'product.tiers.title': 'Prices by quantity',
+        'product.tiers.unit': 'unit',
+        'product.tiers.units': 'units',
 
         'cart.infoTitle': 'Customer Information',
         'cart.orderSummary': 'Order Summary',
