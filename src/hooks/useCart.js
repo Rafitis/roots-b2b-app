@@ -33,14 +33,27 @@ function generateKey(product_id, size, color) {
   return `${product_id}_${size}_${color}`;
 }
 
+const VOLUME_DISCOUNT_TAGS = new Set(["ROOTS CARE", "CALCETINES"]);
+
+const VOLUME_DISCOUNT_TIERS = [
+  { minQty: 1, discount: 0 },
+  { minQty: 2, discount: 30 },
+  { minQty: 16, discount: 35 },
+  { minQty: 52, discount: 40 },
+];
+
+export function getDiscountTiers(tag) {
+  return VOLUME_DISCOUNT_TAGS.has(tag) ? VOLUME_DISCOUNT_TIERS : [];
+}
+
 export function calculateDiscount(tag, quantity) {
-  if (tag === "ROOTS CARE" || tag === "CALCETINES") {
-    if (quantity >= 52) return 40; // 40% de descuento
-    if (quantity >= 16) return 35; // 35% de descuento
-    if (quantity >= 2) return 30; // 30% de descuento
-    return 0;
+  const tiers = getDiscountTiers(tag);
+  if (tiers.length === 0) return 0;
+  let discount = 0;
+  for (const tier of tiers) {
+    if (quantity >= tier.minQty) discount = tier.discount;
   }
-  return 0;
+  return discount;
 }
 
 function getTotalItemsSameID(cart, product_id) {

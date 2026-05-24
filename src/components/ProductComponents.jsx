@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { addToCart, calculateDiscount } from '@hooks/useCart';
+import { addToCart, calculateDiscount, getDiscountTiers } from '@hooks/useCart';
 import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
 import { useTranslations } from '@i18n/utils';
@@ -47,6 +47,47 @@ function VariantImage({ src, alt }) {
         {renderLayer(slots.a, slots.active === 'a')}
         {renderLayer(slots.b, slots.active === 'b')}
       </div>
+    </div>
+  );
+}
+
+function PricingTiers({ tiers, unitPrice, activeMinQty, t }) {
+  return (
+    <div className="rounded border border-base-300/60 bg-base-100 overflow-hidden">
+      <div className="px-2.5 py-1.5 bg-base-200/60 border-b border-base-300/40">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-roots-clay">
+          {t('product.tiers.title')}
+        </p>
+      </div>
+      <ul className="divide-y divide-base-300/40">
+        {tiers.map(tier => {
+          const isActive = tier.minQty === activeMinQty;
+          const tierUnitPrice = unitPrice * (1 - tier.discount / 100);
+          const qtyLabel = tier.minQty === 1
+            ? `1 ${t('product.tiers.unit')}`
+            : `${tier.minQty}+ ${t('product.tiers.units')}`;
+          return (
+            <li
+              key={tier.minQty}
+              className={[
+                'flex items-center justify-between px-2.5 py-1 text-[11px] tabular-nums transition-colors',
+                isActive
+                  ? 'bg-roots-bark text-roots-sand font-semibold'
+                  : 'text-roots-earth',
+              ].join(' ')}
+            >
+              <span className="w-14">{qtyLabel}</span>
+              <span className="flex-1 text-right pr-2">{tierUnitPrice.toFixed(2)} €</span>
+              <span className={[
+                'w-10 text-right font-medium',
+                isActive ? 'text-roots-sand' : tier.discount > 0 ? 'text-roots-moss' : 'text-roots-clay/60',
+              ].join(' ')}>
+                {tier.discount > 0 ? `-${tier.discount}%` : '—'}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -115,16 +156,26 @@ export function ProductCard({ product }) {
     return { isPreOrder, isReservaB2B };
   }, [product.tags]);
 
-  const { totalPrice, unitPrice } = useMemo(() => {
-    if (!selectedVariant) return { totalPrice: 0, unitPrice: '0.00' };
+  const tiers = useMemo(() => getDiscountTiers(product.tags[0]), [product.tags]);
+
+  const { totalPrice, unitPrice, basePrice, activeMinQty } = useMemo(() => {
+    if (!selectedVariant) {
+      return { totalPrice: 0, unitPrice: '0.00', basePrice: 0, activeMinQty: null };
+    }
     const price = Number(selectedVariant.precio);
     const discount = calculateDiscount(product.tags[0], quantity);
     const factor = 1 - discount / 100;
+    let active = tiers[0]?.minQty ?? null;
+    for (const tier of tiers) {
+      if (quantity >= tier.minQty) active = tier.minQty;
+    }
     return {
       totalPrice: quantity * price * factor,
-      unitPrice: (price * factor).toFixed(2)
+      unitPrice: (price * factor).toFixed(2),
+      basePrice: price,
+      activeMinQty: active,
     };
-  }, [selectedVariant, quantity, product.tags]);
+  }, [selectedVariant, quantity, product.tags, tiers]);
 
   const handleQuantityChange = e => {
     let val = parseInt(e.target.value, 10) || 1;
@@ -220,6 +271,15 @@ export function ProductCard({ product }) {
 
         {/* Price + controls */}
         <div className="space-y-2 pt-2 border-t border-base-300/40">
+          {tiers.length > 0 && selectedVariant && (
+            <PricingTiers
+              tiers={tiers}
+              unitPrice={basePrice}
+              activeMinQty={activeMinQty}
+              t={t}
+            />
+          )}
+
           <div className="flex items-baseline justify-between">
             <span className="text-lg font-bold text-roots-bark tabular-nums">
               {totalPrice.toFixed(2)} €
@@ -244,9 +304,11 @@ export function ProductCard({ product }) {
                   className="w-16 h-8 text-sm text-center border border-base-300 rounded bg-base-100 focus:border-roots-clay focus:outline-none transition-colors tabular-nums"
                 />
               </div>
-              <div className="text-[11px] text-roots-clay text-right whitespace-nowrap tabular-nums">
-                *{t('product.pricePerUnit')}: {unitPrice} €
-              </div>
+              {tiers.length === 0 && (
+                <div className="text-[11px] text-roots-clay text-right whitespace-nowrap tabular-nums">
+                  *{t('product.pricePerUnit')}: {unitPrice} €
+                </div>
+              )}
             </div>
           )}
 
