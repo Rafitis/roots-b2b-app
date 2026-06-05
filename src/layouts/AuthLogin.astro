@@ -1,11 +1,12 @@
 ---
 interface Props {
 	title: string;
+	description?: string;
 }
 
 import "@styles/global.css";
 import Footer from "@components/Footer.astro";
-const { title = 'Roots Barefoot B2B Budget Generator'  } = Astro.props;
+const { title = 'Roots Barefoot B2B Budget Generator', description } = Astro.props;
 ---
 
 <!doctype html>
@@ -15,6 +16,7 @@ const { title = 'Roots Barefoot B2B Budget Generator'  } = Astro.props;
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon_roots.webp" />
 		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
 	</head>
 	<body class="min-h-screen flex flex-col">
 		<main class="flex-1 flex items-center justify-center px-4">
