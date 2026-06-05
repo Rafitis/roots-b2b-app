@@ -54,6 +54,7 @@ export async function onRequest(context, next) {
   if (
     url.pathname === '/signin' ||
     url.pathname === '/signup' ||
+    url.pathname === '/rootsbarefoot-api' ||
     url.pathname.startsWith('/api/auth') ||
     url.pathname.startsWith('/api/cron')
   ) {

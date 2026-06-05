@@ -1,0 +1,49 @@
+---
+import AuthLayout from "../layouts/AuthLogin.astro";
+---
+
+<AuthLayout
+  title="rootsbarefoot — Internal API Application"
+  description="Internal API application of Roots Barefoot — used to consolidate advertising and sales data for internal profitability metrics."
+>
+  <article class="w-full max-w-3xl mx-auto py-12 px-6 text-roots-bark leading-relaxed">
+    <h1 class="text-2xl md:text-3xl font-bold mb-8 text-roots-bark">
+      rootsbarefoot — Internal API Application
+    </h1>
+
+    <section class="mb-8">
+      <h2 class="text-lg md:text-xl font-semibold mb-3 text-roots-bark">About the application</h2>
+      <p class="text-sm md:text-base text-roots-earth">
+        The "rootsbarefoot" application is an internal operations dashboard built for the Roots Barefoot e-commerce business. It is not a public-facing product and is used exclusively by the internal team to analyze the profitability of the business. The application is single-tenant and was not built for distribution to other businesses.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg md:text-xl font-semibold mb-3 text-roots-bark">Why we use the Google Ads API</h2>
+      <p class="text-sm md:text-base text-roots-earth">
+        The application integrates with the Google Ads API in read-only mode to fetch advertising spend, impressions, clicks, and conversion metrics for the Roots Barefoot ad account. This information is combined with order data from our e-commerce platform to calculate Contribution Margin, ROAS, and related profitability metrics in our internal dashboard.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg md:text-xl font-semibold mb-3 text-roots-bark">Who uses this application</h2>
+      <p class="text-sm md:text-base text-roots-earth">
+        Only internal Roots Barefoot team members have access to the dashboard. No third parties, no resellers, no public access. The application has no user registration, no public sign-up, and is not licensed or redistributed.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg md:text-xl font-semibold mb-3 text-roots-bark">Data privacy</h2>
+      <p class="text-sm md:text-base text-roots-earth">
+        API credentials (developer token, refresh token, OAuth secrets) are stored as environment variables in the production deployment, never in client-side code or version control. Google Ads data is not shared with third parties and is used solely to compute internal profitability metrics.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-lg md:text-xl font-semibold mb-3 text-roots-bark">Contact</h2>
+      <p class="text-sm md:text-base text-roots-earth">
+        For questions about this application, contact <a href="mailto:rootsbarefoot@gmail.com" class="text-roots-moss underline hover:text-roots-bark">rootsbarefoot@gmail.com</a>.
+      </p>
+    </section>
+  </article>
+</AuthLayout>
