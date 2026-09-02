@@ -1,0 +1,78 @@
+# Vigilancia diaria de dominios que suplantan a ROOTS Barefoot.
+#
+# Cuando aparece un dominio nuevo el job FALLA a propósito: GitHub envía entonces
+# un correo al propietario del repositorio. Es deliberado que no abra un issue,
+# porque este repositorio es público y eso haría visible lo que estamos vigilando.
+#
+# El estado (dominios ya conocidos) viaja en la caché de Actions, no en commits,
+# para no ensuciar el historial con una entrada diaria.
+
+name: Vigilancia de dominios clon
+
+on:
+  schedule:
+    # 06:17 UTC a diario. Minuto no redondo: GitHub retrasa los cron en punto.
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Recupera la lista de dominios ya conocidos de la ejecución anterior.
+      - name: Recuperar estado anterior
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/lookalikes-seen.json
+          key: lookalikes-seen-
+          restore-keys: lookalikes-seen-
+
+      # Los `run` de Actions se ejecutan con `bash -e`, así que el fallo del
+      # script cortaría el paso antes de leer su código. El `|| codigo=$?` lo
+      # neutraliza: aquí el código de salida es el resultado, no un error.
+      - name: Buscar dominios clon
+        id: buscar
+        run: |
+          codigo=0
+          node scripts/watch-lookalikes.mjs > salida.txt 2>&1 || codigo=$?
+          cat salida.txt
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          {
+            echo '## Vigilancia de dominios clon'
+            echo ''
+            echo '```'
+            cat salida.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Se guarda siempre, también cuando hay hallazgos, para no repetir el aviso
+      # el día siguiente. Por eso el fallo se provoca en un paso posterior.
+      - name: Guardar estado
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/lookalikes-seen.json
+          key: lookalikes-seen-${{ github.run_id }}
+
+      - name: Avisar si hay dominios nuevos
+        if: steps.buscar.outputs.codigo == '1'
+        run: |
+          echo '::error::Dominio(s) nuevo(s) suplantando a ROOTS Barefoot. Revisa el resumen de esta ejecución.'
+          exit 1
+
+      - name: Avisar si la comprobación no pudo completarse
+        if: steps.buscar.outputs.codigo != '0' && steps.buscar.outputs.codigo != '1'
+        run: |
+          echo '::error::La vigilancia falló (código ${{ steps.buscar.outputs.codigo }}). No hay resultado fiable hoy.'
+          exit 1
