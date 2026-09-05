@@ -11,8 +11,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { navigate } from 'astro:transitions/client';
 import toast from 'react-hot-toast';
+import { Download } from 'lucide-react';
 import InvoiceFilters from './InvoiceFilters';
 import InvoiceTable from './InvoiceTable';
+
+/**
+ * Construye los query params de filtro compartidos por listado y export CSV
+ * @param {object} activeFilters - Estado de filtros del panel
+ * @returns {URLSearchParams}
+ */
+function buildFilterQueryParams(activeFilters) {
+  const queryParams = new URLSearchParams();
+
+  if (activeFilters.date_from) queryParams.append('date_from', activeFilters.date_from);
+  if (activeFilters.date_to) queryParams.append('date_to', activeFilters.date_to);
+  if (activeFilters.nif) queryParams.append('nif', activeFilters.nif);
+  if (activeFilters.company) queryParams.append('company', activeFilters.company);
+  if (activeFilters.status) queryParams.append('status', activeFilters.status);
+  if (activeFilters.is_paid !== '' && activeFilters.is_paid !== undefined) {
+    queryParams.append('is_paid', activeFilters.is_paid);
+  }
+
+  return queryParams;
+}
 
 export default function AdminInvoices() {
   // Estado de datos
@@ -38,6 +59,9 @@ export default function AdminInvoices() {
   // Estado de selección (para bulk download)
   const [selectedInvoices, setSelectedInvoices] = useState(new Set());
 
+  // Estado de exportación CSV
+  const [exportingCsv, setExportingCsv] = useState(false);
+
   // Estado del modal de confirmación para eliminar
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, number }
 
@@ -56,18 +80,9 @@ export default function AdminInvoices() {
       const activeFilters = filtersToUse || filters;
 
       // Construir query string
-      const queryParams = new URLSearchParams();
+      const queryParams = buildFilterQueryParams(activeFilters);
       queryParams.append('page', pageNum);
       queryParams.append('per_page', pagination.per_page);
-
-      if (activeFilters.date_from) queryParams.append('date_from', activeFilters.date_from);
-      if (activeFilters.date_to) queryParams.append('date_to', activeFilters.date_to);
-      if (activeFilters.nif) queryParams.append('nif', activeFilters.nif);
-      if (activeFilters.company) queryParams.append('company', activeFilters.company);
-      if (activeFilters.status) queryParams.append('status', activeFilters.status);
-      if (activeFilters.is_paid !== '' && activeFilters.is_paid !== undefined) {
-        queryParams.append('is_paid', activeFilters.is_paid);
-      }
 
       // Llamar endpoint
       const response = await fetch(`/api/invoices/list?${queryParams}`);
@@ -197,6 +212,52 @@ export default function AdminInvoices() {
       toast.error('Error al descargar facturas');
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Exportar a CSV las facturas que cumplen los filtros activos
+   * (resultado completo, sin límite de paginación)
+   */
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    try {
+      const queryParams = buildFilterQueryParams(filters);
+      const response = await fetch(`/api/invoices/export.csv?${queryParams}`);
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        toast.error(data.error || 'Error al exportar CSV');
+        return;
+      }
+
+      // Obtener nombre del archivo del header Content-Disposition
+      const contentDisposition = response.headers.get('content-disposition');
+      let fileName = `facturas-${new Date().toISOString().slice(0, 10)}.csv`;
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+?)"/);
+        if (fileNameMatch) fileName = fileNameMatch[1];
+      }
+
+      // Crear blob y descargar
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success(`CSV exportado: ${fileName}`);
+
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Error al exportar CSV');
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -446,6 +507,21 @@ export default function AdminInvoices() {
           onClear={handleClearFilters}
           disabled={loading}
         />
+
+        {/* Exportar CSV (respeta los filtros activos) */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleExportCsv}
+            disabled={exportingCsv || loading}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium btn btn-outline btn-sm"
+          >
+            {exportingCsv ? (
+              <><span className="loading loading-spinner loading-xs"></span> Exportando...</>
+            ) : (
+              <><Download className="w-3.5 h-3.5" /> Exportar CSV</>
+            )}
+          </button>
+        </div>
 
         {/* Tabla de facturas */}
         <InvoiceTable
