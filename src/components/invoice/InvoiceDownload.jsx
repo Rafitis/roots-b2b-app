@@ -1,5 +1,5 @@
 // InvoiceDownload.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Document,
   Page,
@@ -103,6 +103,7 @@ const InvoiceDownload = ({
 
   const [isReady, setIsReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const downloadInProgressRef = useRef(false);
 
   useEffect(() => {
     // Dar tiempo para que react-pdf se inicialice
@@ -293,44 +294,48 @@ const InvoiceDownload = ({
       return;
     }
 
+    // El ref bloquea dobles clics antes de que React llegue a repintar el botón.
+    if (downloadInProgressRef.current || isSaving) return;
+    downloadInProgressRef.current = true;
+
     // Generar PDF, guardarlo en servidor, y solo descargar si se guardó correctamente
-    if (!isSaving) {
-      try {
-        const currentItems = getCart();
-        const currentRegularItems = currentItems.filter(i => !i.isPreOrder);
-        const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
+    try {
+      const currentItems = getCart();
+      const currentRegularItems = currentItems.filter(i => !i.isPreOrder);
+      const currentPreOrderItems = currentItems.filter(i => i.isPreOrder);
 
-        const pdfDocument = (
-          <CombinedInvoice
-            regularItems={currentRegularItems}
-            preOrderItems={currentPreOrderItems}
-            dni={dni}
-            iban={iban}
-            selectedCustomer={customerInfo}
-            title={title}
-            customDiscount={customDiscount}
-          />
-        );
+      const pdfDocument = (
+        <CombinedInvoice
+          regularItems={currentRegularItems}
+          preOrderItems={currentPreOrderItems}
+          dni={dni}
+          iban={iban}
+          selectedCustomer={customerInfo}
+          title={title}
+          customDiscount={customDiscount}
+        />
+      );
 
-        const pdfBlob = await pdf(pdfDocument).toBlob();
+      const pdfBlob = await pdf(pdfDocument).toBlob();
 
-        // Primero guardar en servidor — solo descargar si fue exitoso
-        const saveResult = await saveInvoiceToServer(pdfBlob);
+      // Primero guardar en servidor — solo descargar si fue exitoso
+      const saveResult = await saveInvoiceToServer(pdfBlob);
 
-        if (saveResult.success) {
-          const downloadUrl = URL.createObjectURL(pdfBlob);
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.download = `${t('download.documentTitle')}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-        }
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-        toast.error('Error al generar PDF');
+      if (saveResult.success) {
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${t('download.documentTitle')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
       }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Error al generar PDF');
+    } finally {
+      downloadInProgressRef.current = false;
     }
   };
 
