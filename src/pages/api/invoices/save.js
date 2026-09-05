@@ -22,6 +22,10 @@ import {
   generatePublicPdfUrl,
   base64ToUint8Array
 } from '../../../lib/invoice-service.js';
+import {
+  parseNotificationRecipients,
+  sendInvoiceNotification
+} from '../../../lib/order-notification.js';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -173,13 +177,49 @@ export const POST = async ({ request }) => {
     // 8. Generar URL pública del PDF
     const pdfUrl = generatePublicPdfUrl(supabaseUrl, BUCKET_NAME, pdfStoragePath);
 
-    // 9. Retornar respuesta exitosa
+    // 9. Avisar al equipo de los pedidos nuevos. Es best-effort: la factura ya está
+    // guardada y un fallo de email nunca debe bloquear la descarga del cliente.
+    let notificationSent = false;
+    if (!invoice_data.previous_invoice_id) {
+      try {
+        const configuredAppUrl = import.meta.env.APP_URL?.replace(/\/$/, '');
+        const appUrl = configuredAppUrl || new URL(request.url).origin;
+        const notification = await sendInvoiceNotification({
+          apiKey: import.meta.env.RESEND_API_KEY,
+          from: import.meta.env.RESEND_FROM_EMAIL,
+          recipients: parseNotificationRecipients(import.meta.env.RESEND_NOTIFICATION_TO),
+          adminUrl: `${appUrl}/admin/invoices`,
+          pdfBase64: cleanedBase64,
+          invoice: {
+            ...invoice_data,
+            id: invoiceId,
+            invoice_number: invoiceNumber
+          }
+        });
+
+        notificationSent = notification.sent;
+
+        if (notification.skipped) {
+          console.warn('Notificación de pedido omitida: faltan variables de Resend');
+        }
+      } catch (notificationError) {
+        console.error('Error sending order notification:', {
+          message: notificationError.message,
+          status: notificationError.status,
+          details: notificationError.details,
+          invoiceId
+        });
+      }
+    }
+
+    // 10. Retornar respuesta exitosa
     return new Response(
       JSON.stringify({
         success: true,
         invoice_number: invoiceNumber,
         id: invoiceId,
         pdf_url: pdfUrl,
+        notification_sent: notificationSent,
         message: `Factura guardada correctamente: ${invoiceNumber}`
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
