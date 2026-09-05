@@ -16,6 +16,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { parseInvoiceFilters, applyInvoiceFilters } from '../../../lib/invoice-filters.js';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -38,36 +39,17 @@ export const GET = async ({ request, locals }) => {
     const params = Object.fromEntries(url.searchParams);
 
     // Validar y sanitizar parámetros
-    const dateFrom = params.date_from ? new Date(params.date_from).toISOString() : null;
-    const dateTo = params.date_to ? new Date(params.date_to).toISOString() : null;
-    const nif = params.nif?.trim() || null;
-    const company = params.company?.trim() || null;
-    const status = params.status?.trim() || null;
-    const isPaidParam = params.is_paid?.trim();
-    const isPaid = isPaidParam === 'true' ? true : isPaidParam === 'false' ? false : null;
     const page = Math.max(1, parseInt(params.page) || 1);
     const perPage = Math.min(100, Math.max(10, parseInt(params.per_page) || 50));
 
-    // Validar parámetros
-    if (dateFrom && isNaN(new Date(dateFrom).getTime())) {
+    const { filters, error: filterError } = parseInvoiceFilters(params);
+    if (filterError) {
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Formato de date_from inválido (usar YYYY-MM-DD)'
-        }),
+        JSON.stringify({ success: false, error: filterError }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
-
-    if (dateTo && isNaN(new Date(dateTo).getTime())) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Formato de date_to inválido (usar YYYY-MM-DD)'
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    const { nif, company, status, isPaid } = filters;
 
     // Construir query base
     let query = supabase
@@ -75,31 +57,7 @@ export const GET = async ({ request, locals }) => {
       .select('*', { count: 'exact' });
 
     // Aplicar filtros
-    if (dateFrom) {
-      query = query.gte('created_at', dateFrom);
-    }
-
-    if (dateTo) {
-      // Sumar 1 día para incluir toda la fecha_to
-      const dateToEnd = new Date(new Date(dateTo).getTime() + 86400000).toISOString();
-      query = query.lt('created_at', dateToEnd);
-    }
-
-    if (nif) {
-      query = query.ilike('nif_cif', `%${nif}%`);
-    }
-
-    if (company) {
-      query = query.ilike('company_name', `%${company}%`);
-    }
-
-    if (status && ['pending_review', 'shopify_draft', 'completed', 'cancelled', 'finalized'].includes(status)) {
-      query = query.eq('status', status);
-    }
-
-    if (isPaid !== null) {
-      query = query.eq('is_paid', isPaid);
-    }
+    query = applyInvoiceFilters(query, filters);
 
     // Ordenar por fecha descendente (más recientes primero)
     query = query.order('created_at', { ascending: false });

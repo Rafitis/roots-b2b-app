@@ -30,4 +30,4 @@ CLAUDE.md
 PLAN_*.md
 db/
 .claude/
-.agents/
+.agent/
